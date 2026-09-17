@@ -1,0 +1,6 @@
+.env
+*.sar
+*.pcap
+*.log
+__pycache__/
+venv/

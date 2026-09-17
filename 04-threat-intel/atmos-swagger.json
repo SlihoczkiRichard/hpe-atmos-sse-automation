@@ -1,0 +1,6946 @@
+{
+  "x-generator": "NSwag v12.3.0.0 (NJsonSchema v9.14.1.0 (Newtonsoft.Json v13.0.0.0))",
+  "swagger": "2.0",
+  "info": {
+    "title": "PublicAdminApi",
+    "version": "1.0"
+  },
+  "host": "admin-api.axissecurity.com",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1.0/Tags": {
+      "post": {
+        "tags": [
+          "ApplicationGroups"
+        ],
+        "summary": "Create a New Application Group",
+        "operationId": "ApplicationGroups_Create",
+        "parameters": [
+          {
+            "name": "applicationGroupModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationGroupModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Application Group created successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGroupModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ApplicationGroups"
+        ],
+        "summary": "Get Application Groups",
+        "operationId": "ApplicationGroups_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Application Groups retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfApplicationGroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Tags/{id}": {
+      "put": {
+        "tags": [
+          "ApplicationGroups"
+        ],
+        "summary": "Update an Existing Application Group",
+        "operationId": "ApplicationGroups_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "applicationGroupModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationGroupModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Application Group updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ApplicationGroups"
+        ],
+        "summary": "Delete Application Group by ID",
+        "operationId": "ApplicationGroups_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ApplicationGroups"
+        ],
+        "summary": "Get Application Group by ID",
+        "operationId": "ApplicationGroups_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Application Group retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationGroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Applications": {
+      "post": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Create a New Application",
+        "operationId": "Applications_Create",
+        "parameters": [
+          {
+            "name": "appModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "501": {
+            "x-nullable": true,
+            "description": "Not supported error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "201": {
+            "x-nullable": true,
+            "description": "Application created successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get Applications",
+        "operationId": "Applications_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "Applications retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfApplicationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Applications/{id}": {
+      "put": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Update an Existing Application",
+        "operationId": "Applications_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "appModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "501": {
+            "x-nullable": true,
+            "description": "Not supported error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "Application updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Get Application by ID",
+        "operationId": "Applications_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "Application retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ApplicationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Applications"
+        ],
+        "summary": "Delete Application by ID",
+        "operationId": "Applications_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "501": {
+            "x-nullable": true,
+            "description": "Not supported error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Commit": {
+      "post": {
+        "tags": [
+          "Commit"
+        ],
+        "summary": "Commit Changes",
+        "operationId": "Commit_CommitChanges",
+        "responses": {
+          "204": {
+            "description": "Changes committed successfully"
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Connectors": {
+      "post": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Create a New Connector",
+        "operationId": "Connectors_Create",
+        "parameters": [
+          {
+            "name": "connectorModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConnectorModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Connector created successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorCreateResponseModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Get Connectors",
+        "operationId": "Connectors_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connectors retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfConnectorModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Connectors/{id}": {
+      "put": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Update an Existing Connector",
+        "operationId": "Connectors_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "connectorModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConnectorModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Get Connector by ID",
+        "operationId": "Connectors_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Delete Connector by ID",
+        "operationId": "Connectors_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Connectors/{id}/regenerate": {
+      "post": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Regenerate an Installation Command for an Exisitng Connector",
+        "operationId": "Connectors_Regenerate",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector's installation command regenerated successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorRegenerateResponseModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Connectors/{id}/status": {
+      "get": {
+        "tags": [
+          "Connectors"
+        ],
+        "summary": "Get the Status of a Connector",
+        "operationId": "Connectors_Status",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector's status retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorStatusResponseModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/ConnectorZones": {
+      "post": {
+        "tags": [
+          "ConnectorZones"
+        ],
+        "summary": "Create a New Connector Zone",
+        "operationId": "ConnectorZones_Create",
+        "parameters": [
+          {
+            "name": "connectorZoneModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConnectorZoneModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Connector Zone created successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorZoneModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ConnectorZones"
+        ],
+        "summary": "Get Connector Zones",
+        "operationId": "ConnectorZones_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector Zones retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfConnectorZoneModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/ConnectorZones/{id}": {
+      "put": {
+        "tags": [
+          "ConnectorZones"
+        ],
+        "summary": "Update an Existing Connector Zone",
+        "operationId": "ConnectorZones_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "connectorZoneModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConnectorZoneModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector Zone updated successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorZoneModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ConnectorZones"
+        ],
+        "summary": "Get Connector Zone by ID",
+        "operationId": "ConnectorZones_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Connector Zone retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/ConnectorZoneModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ConnectorZones"
+        ],
+        "summary": "Delete Connector Zone by ID",
+        "operationId": "ConnectorZones_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/IpCategories": {
+      "post": {
+        "tags": [
+          "CustomIpCategory"
+        ],
+        "summary": "Create a New IP Category",
+        "operationId": "CustomIpCategory_Create",
+        "parameters": [
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CustomIpCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "201": {
+            "x-nullable": true,
+            "description": "IP Category created successfully",
+            "schema": {
+              "$ref": "#/definitions/CustomIpCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "CustomIpCategory"
+        ],
+        "summary": "Get IP Categories",
+        "operationId": "CustomIpCategory_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfCustomIpCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/IpCategories/{id}": {
+      "put": {
+        "tags": [
+          "CustomIpCategory"
+        ],
+        "summary": "Update an Existing IP Category",
+        "operationId": "CustomIpCategory_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CustomIpCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "An unexpected error occurred while applying changes. Please try again later or contact support for assistance\nor\nInternal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            },
+            "x-expectedSchemas": [
+              {
+                "description": "An unexpected error occurred while applying changes. Please try again later or contact support for assistance",
+                "schema": {
+                  "$ref": "#/definitions/PublicAdminApiError"
+                }
+              },
+              {
+                "description": "Internal server error",
+                "schema": {
+                  "$ref": "#/definitions/PublicAdminApiError"
+                }
+              }
+            ]
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category updated successfully",
+            "schema": {
+              "$ref": "#/definitions/CustomIpCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "CustomIpCategory"
+        ],
+        "summary": "Get IP Category by ID",
+        "operationId": "CustomIpCategory_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/CustomIpCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CustomIpCategory"
+        ],
+        "summary": "Delete IP Category by ID",
+        "operationId": "CustomIpCategory_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/DomainNameCertificates": {
+      "post": {
+        "tags": [
+          "DomainNameCertificates"
+        ],
+        "summary": "Create a New Domain Name Certificate",
+        "operationId": "DomainNameCertificates_Create",
+        "parameters": [
+          {
+            "name": "certificateModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DomainNameCertificateModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Domain Name Certificate created successfully",
+            "schema": {
+              "$ref": "#/definitions/DomainNameCertificateModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "DomainNameCertificates"
+        ],
+        "summary": "Get Domain Name Certificates",
+        "operationId": "DomainNameCertificates_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Domain Name Certificates retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfDomainNameCertificateModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/DomainNameCertificates/{id}": {
+      "get": {
+        "tags": [
+          "DomainNameCertificates"
+        ],
+        "summary": "Get Domain Name Certificate by ID",
+        "operationId": "DomainNameCertificates_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Domain Name Certificate retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/DomainNameCertificateModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DomainNameCertificates"
+        ],
+        "summary": "Delete Domain Name Certificate by ID",
+        "operationId": "DomainNameCertificates_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/DomainNameCertificates/{certId}/replace": {
+      "post": {
+        "tags": [
+          "DomainNameCertificates"
+        ],
+        "summary": "Replace a Domain Name Certificate",
+        "operationId": "DomainNameCertificates_Replace",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "certId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReplaceCertificatePfxRequestModel"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Domain Name Certificate replaced successfully",
+            "schema": {
+              "$ref": "#/definitions/DomainNameCertificateModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Groups": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Create a New Group",
+        "operationId": "Groups_Create",
+        "parameters": [
+          {
+            "name": "groupModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GroupModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Group created successfully",
+            "schema": {
+              "$ref": "#/definitions/GroupModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Get Groups",
+        "operationId": "Groups_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Groups retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfGroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Groups/{id}": {
+      "put": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Update an Existing Group",
+        "operationId": "Groups_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "groupModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GroupModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Group updated successfully",
+            "schema": {
+              "$ref": "#/definitions/GroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Get Group by ID",
+        "operationId": "Groups_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Group retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/GroupModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Delete Group by ID",
+        "operationId": "Groups_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health Check",
+        "operationId": "Health_Get",
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Service health status with dependency checks retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/HealthResponseModel"
+            }
+          },
+          "503": {
+            "x-nullable": true,
+            "description": "Service or dependencies are unhealthy",
+            "schema": {
+              "$ref": "#/definitions/HealthResponseModel"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/IpCategoriesFeed": {
+      "post": {
+        "tags": [
+          "IpFeedCategory"
+        ],
+        "summary": "Create a New IP Category",
+        "operationId": "IpFeedCategory_Create",
+        "parameters": [
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/IpFeedCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "201": {
+            "x-nullable": true,
+            "description": "IP Category created successfully",
+            "schema": {
+              "$ref": "#/definitions/IpFeedCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "IpFeedCategory"
+        ],
+        "summary": "Get IP Categories",
+        "operationId": "IpFeedCategory_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfIpFeedCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/IpCategoriesFeed/{id}": {
+      "put": {
+        "tags": [
+          "IpFeedCategory"
+        ],
+        "summary": "Update an Existing IP Category",
+        "operationId": "IpFeedCategory_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/IpFeedCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "An unexpected error occurred while applying changes. Please try again later or contact support for assistance\nor\nInternal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            },
+            "x-expectedSchemas": [
+              {
+                "description": "An unexpected error occurred while applying changes. Please try again later or contact support for assistance",
+                "schema": {
+                  "$ref": "#/definitions/PublicAdminApiError"
+                }
+              },
+              {
+                "description": "Internal server error",
+                "schema": {
+                  "$ref": "#/definitions/PublicAdminApiError"
+                }
+              }
+            ]
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category updated successfully",
+            "schema": {
+              "$ref": "#/definitions/IpFeedCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "IpFeedCategory"
+        ],
+        "summary": "Get IP Category by ID",
+        "operationId": "IpFeedCategory_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "IP Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/IpFeedCategoryModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "IpFeedCategory"
+        ],
+        "summary": "Delete IP Category by ID",
+        "operationId": "IpFeedCategory_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/pops/ipsec": {
+      "get": {
+        "tags": [
+          "IpSecLocations"
+        ],
+        "summary": "Get IPSec PoP Locations",
+        "operationId": "IpSecLocations_Get",
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "IPSec PoP locations retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/IpSecLocationsResponseModel"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Locations": {
+      "post": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Create a New Location",
+        "operationId": "Locations_Create",
+        "parameters": [
+          {
+            "name": "locationModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LocationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Location created successfully",
+            "schema": {
+              "$ref": "#/definitions/LocationModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Get Locations",
+        "operationId": "Locations_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Locations retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfLocationModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Locations/{id}": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Get Location by ID",
+        "operationId": "Locations_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Location retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/LocationModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Delete Location by ID",
+        "operationId": "Locations_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Locations"
+        ],
+        "summary": "Update an Existing Location",
+        "operationId": "Locations_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "locationModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LocationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Location updated successfully",
+            "schema": {
+              "$ref": "#/definitions/LocationModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/SslExclusions": {
+      "post": {
+        "tags": [
+          "SslExclusions"
+        ],
+        "summary": "Create a New SSL Exclusion",
+        "operationId": "SslExclusions_Create",
+        "parameters": [
+          {
+            "name": "sslExclusionModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SslExclusionModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "SSL Exclusion created successfully",
+            "schema": {
+              "$ref": "#/definitions/SslExclusionModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "SslExclusions"
+        ],
+        "summary": "Get SSL Exclusions",
+        "operationId": "SslExclusions_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "SSL Exclusions retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfSslExclusionModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/SslExclusions/{id}": {
+      "put": {
+        "tags": [
+          "SslExclusions"
+        ],
+        "summary": "Update an Existing SSL Exclusion",
+        "operationId": "SslExclusions_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "sslExclusionModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SslExclusionModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "SSL Exclusion updated successfully",
+            "schema": {
+              "$ref": "#/definitions/SslExclusionModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "SslExclusions"
+        ],
+        "summary": "Get SSL Exclusion by ID",
+        "operationId": "SslExclusions_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "SSL Exclusion retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/SslExclusionModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SslExclusions"
+        ],
+        "summary": "Delete SSL Exclusion by ID",
+        "operationId": "SslExclusions_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Locations/{locationId}/SubLocations": {
+      "post": {
+        "tags": [
+          "SubLocations"
+        ],
+        "summary": "Create a New SubLocation",
+        "operationId": "SubLocations_Create",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "model",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SubLocationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "201": {
+            "x-nullable": true,
+            "description": "SubLocation created successfully",
+            "schema": {
+              "$ref": "#/definitions/SubLocationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "SubLocations"
+        ],
+        "summary": "Get SubLocations",
+        "operationId": "SubLocations_Query",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "SubLocations retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfSubLocationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Locations/{locationId}/SubLocations/{id}": {
+      "get": {
+        "tags": [
+          "SubLocations"
+        ],
+        "summary": "Get SubLocation by ID",
+        "operationId": "SubLocations_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "SubLocation retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/SubLocationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SubLocations"
+        ],
+        "summary": "Delete SubLocation by ID",
+        "operationId": "SubLocations_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SubLocations"
+        ],
+        "summary": "Update an Existing SubLocation",
+        "operationId": "SubLocations_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "locationId",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "model",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SubLocationModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "200": {
+            "x-nullable": true,
+            "description": "SubLocation updated successfully",
+            "schema": {
+              "$ref": "#/definitions/SubLocationModelV1"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Tunnels": {
+      "post": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Create a New Tunnel",
+        "operationId": "Tunnels_Create",
+        "parameters": [
+          {
+            "name": "tunnelModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TunnelModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Tunnel created successfully",
+            "schema": {
+              "$ref": "#/definitions/TunnelModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Get Tunnels",
+        "operationId": "Tunnels_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Tunnels retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfTunnelModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Tunnels/{id}": {
+      "get": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Get Tunnel by ID",
+        "operationId": "Tunnels_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Tunnel retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/TunnelModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Delete Tunnel by ID",
+        "operationId": "Tunnels_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Update an Existing Tunnel",
+        "operationId": "Tunnels_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "tunnelModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TunnelModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Tunnel updated successfully",
+            "schema": {
+              "$ref": "#/definitions/TunnelModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Tunnels/{id}/status": {
+      "get": {
+        "tags": [
+          "Tunnels"
+        ],
+        "summary": "Get the Status of a Tunnel",
+        "operationId": "Tunnels_Status",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Tunnel's status retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/TunnelStatusResponseModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Users": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Create a New User",
+        "operationId": "Users_Create",
+        "parameters": [
+          {
+            "name": "userModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "User created successfully",
+            "schema": {
+              "$ref": "#/definitions/UserModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get Users",
+        "operationId": "Users_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Users retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfUserModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/Users/{id}": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update an Existing User",
+        "operationId": "Users_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "userModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "User updated successfully",
+            "schema": {
+              "$ref": "#/definitions/UserModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get User by ID",
+        "operationId": "Users_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "User retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/UserModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Delete User by ID",
+        "operationId": "Users_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/WebCategories": {
+      "post": {
+        "tags": [
+          "WebCategory"
+        ],
+        "summary": "Create a New Web Category",
+        "operationId": "WebCategory_Create",
+        "parameters": [
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WebCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "x-nullable": true,
+            "description": "Web Category created successfully",
+            "schema": {
+              "$ref": "#/definitions/WebCategoryModelV1"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "WebCategory"
+        ],
+        "summary": "Get Web Categories",
+        "operationId": "WebCategory_Query",
+        "parameters": [
+          {
+            "type": "integer",
+            "name": "pageNumber",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          },
+          {
+            "type": "integer",
+            "name": "pageSize",
+            "in": "query",
+            "format": "int32",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Web Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/PagedApiResponseOfIEnumerableOfWebCategoryModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    },
+    "/api/v1.0/WebCategories/{id}": {
+      "put": {
+        "tags": [
+          "WebCategory"
+        ],
+        "summary": "Update an Existing Web Category",
+        "operationId": "WebCategory_Update",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          },
+          {
+            "name": "categoryModel",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/WebCategoryModelV1"
+            },
+            "x-nullable": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Web Category updated successfully",
+            "schema": {
+              "$ref": "#/definitions/WebCategoryModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "409": {
+            "x-nullable": true,
+            "description": "Entity already exists",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "WebCategory"
+        ],
+        "summary": "Get Web Category by ID",
+        "operationId": "WebCategory_GetById",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "x-nullable": true,
+            "description": "Web Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/WebCategoryModelV1"
+            }
+          },
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "WebCategory"
+        ],
+        "summary": "Delete Web Category by ID",
+        "operationId": "WebCategory_Delete",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "format": "guid",
+            "x-nullable": false
+          }
+        ],
+        "responses": {
+          "404": {
+            "x-nullable": true,
+            "description": "Entity not found",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "204": {
+            "description": "Entity deleted successfully"
+          },
+          "400": {
+            "x-nullable": true,
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "401": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "403": {
+            "x-nullable": true,
+            "description": "Unauthorized access",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          },
+          "500": {
+            "x-nullable": true,
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/PublicAdminApiError"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ApplicationGroupModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "applications": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ApplicationSlimModelV1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ApplicationSlimModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/SlimModelV1"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/ApplicationType"
+            }
+          }
+        }
+      ]
+    },
+    "ApplicationType": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Application",
+        "SaaS",
+        "Category"
+      ],
+      "enum": [
+        "Application",
+        "SaaS",
+        "Category"
+      ]
+    },
+    "SlimModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "NamedModelBase": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "ModelBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "guid"
+        }
+      }
+    },
+    "PublicAdminApiError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/HttpStatusCode"
+        },
+        "details": {
+          "type": "string"
+        }
+      }
+    },
+    "HttpStatusCode": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Continue",
+        "SwitchingProtocols",
+        "Processing",
+        "EarlyHints",
+        "OK",
+        "Created",
+        "Accepted",
+        "NonAuthoritativeInformation",
+        "NoContent",
+        "ResetContent",
+        "PartialContent",
+        "MultiStatus",
+        "AlreadyReported",
+        "IMUsed",
+        "MultipleChoices",
+        "Ambiguous",
+        "MovedPermanently",
+        "Moved",
+        "Found",
+        "Redirect",
+        "SeeOther",
+        "RedirectMethod",
+        "NotModified",
+        "UseProxy",
+        "Unused",
+        "TemporaryRedirect",
+        "RedirectKeepVerb",
+        "PermanentRedirect",
+        "BadRequest",
+        "Unauthorized",
+        "PaymentRequired",
+        "Forbidden",
+        "NotFound",
+        "MethodNotAllowed",
+        "NotAcceptable",
+        "ProxyAuthenticationRequired",
+        "RequestTimeout",
+        "Conflict",
+        "Gone",
+        "LengthRequired",
+        "PreconditionFailed",
+        "RequestEntityTooLarge",
+        "RequestUriTooLong",
+        "UnsupportedMediaType",
+        "RequestedRangeNotSatisfiable",
+        "ExpectationFailed",
+        "MisdirectedRequest",
+        "UnprocessableEntity",
+        "UnprocessableContent",
+        "Locked",
+        "FailedDependency",
+        "UpgradeRequired",
+        "PreconditionRequired",
+        "TooManyRequests",
+        "RequestHeaderFieldsTooLarge",
+        "UnavailableForLegalReasons",
+        "InternalServerError",
+        "NotImplemented",
+        "BadGateway",
+        "ServiceUnavailable",
+        "GatewayTimeout",
+        "HttpVersionNotSupported",
+        "VariantAlsoNegotiates",
+        "InsufficientStorage",
+        "LoopDetected",
+        "NotExtended",
+        "NetworkAuthenticationRequired"
+      ],
+      "enum": [
+        "Continue",
+        "SwitchingProtocols",
+        "Processing",
+        "EarlyHints",
+        "OK",
+        "Created",
+        "Accepted",
+        "NonAuthoritativeInformation",
+        "NoContent",
+        "ResetContent",
+        "PartialContent",
+        "MultiStatus",
+        "AlreadyReported",
+        "IMUsed",
+        "MultipleChoices",
+        "MovedPermanently",
+        "Found",
+        "SeeOther",
+        "NotModified",
+        "UseProxy",
+        "Unused",
+        "RedirectKeepVerb",
+        "PermanentRedirect",
+        "BadRequest",
+        "Unauthorized",
+        "PaymentRequired",
+        "Forbidden",
+        "NotFound",
+        "MethodNotAllowed",
+        "NotAcceptable",
+        "ProxyAuthenticationRequired",
+        "RequestTimeout",
+        "Conflict",
+        "Gone",
+        "LengthRequired",
+        "PreconditionFailed",
+        "RequestEntityTooLarge",
+        "RequestUriTooLong",
+        "UnsupportedMediaType",
+        "RequestedRangeNotSatisfiable",
+        "ExpectationFailed",
+        "MisdirectedRequest",
+        "UnprocessableEntity",
+        "Locked",
+        "FailedDependency",
+        "UpgradeRequired",
+        "PreconditionRequired",
+        "TooManyRequests",
+        "RequestHeaderFieldsTooLarge",
+        "UnavailableForLegalReasons",
+        "InternalServerError",
+        "NotImplemented",
+        "BadGateway",
+        "ServiceUnavailable",
+        "GatewayTimeout",
+        "HttpVersionNotSupported",
+        "VariantAlsoNegotiates",
+        "InsufficientStorage",
+        "LoopDetected",
+        "NotExtended",
+        "NetworkAuthenticationRequired"
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfApplicationGroupModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationGroupModelV1"
+          }
+        }
+      }
+    },
+    "ApplicationModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "enabled",
+            "connectorZoneId"
+          ],
+          "properties": {
+            "type": {
+              "$ref": "#/definitions/ApplicationModelType"
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "connectorZoneId": {
+              "type": "string",
+              "format": "guid",
+              "minLength": 1
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            },
+            "identityProviderId": {
+              "type": "string",
+              "format": "guid"
+            },
+            "networkRangeApplicationData": {
+              "$ref": "#/definitions/NetworkRangeApplicationDataModelV1"
+            }
+          }
+        }
+      ]
+    },
+    "ApplicationModelType": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Web",
+        "Rdp",
+        "RdpPool",
+        "Ssh",
+        "Database",
+        "NetworkRange",
+        "SshRange",
+        "Git",
+        "Saas",
+        "Vnc",
+        "ActiveDirectory",
+        "Saml"
+      ],
+      "enum": [
+        "Web",
+        "Rdp",
+        "RdpPool",
+        "Ssh",
+        "Database",
+        "NetworkRange",
+        "SshRange",
+        "Git",
+        "Saas",
+        "Vnc",
+        "ActiveDirectory",
+        "Saml"
+      ]
+    },
+    "NetworkRangeApplicationDataModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enableIcmp",
+        "enforceResolvedDnsToIp"
+      ],
+      "properties": {
+        "dnsSearches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ipRangesOrCIDRs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedDnsSearches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "portsAndProtocols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enableIcmp": {
+          "type": "boolean",
+          "default": true
+        },
+        "serverInitiatedPorts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enforceResolvedDnsToIp": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "PagedApiResponseOfIEnumerableOfApplicationModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApplicationModelV1"
+          }
+        }
+      }
+    },
+    "ConnectorCreateResponseModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ConnectorModelV1"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "command": {
+              "type": "string",
+              "readOnly": true,
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "ConnectorModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "connectorZoneId"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "primaryPublicIP": {
+              "type": "string"
+            },
+            "connectorZoneId": {
+              "type": "string",
+              "format": "guid",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfConnectorModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConnectorModelV1"
+          }
+        }
+      }
+    },
+    "ConnectorRegenerateResponseModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "command"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "command": {
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        }
+      }
+    },
+    "ConnectorStatusResponseModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "systemStatusCheckTime"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "status": {
+          "readOnly": true,
+          "allOf": [
+            {
+              "$ref": "#/definitions/ConnectorStatus"
+            }
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "systemStatusCheckTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "primaryPublicIP": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "networkStatus": {
+          "$ref": "#/definitions/ConnectorNetworkStatusModelV1"
+        },
+        "memoryStatus": {
+          "$ref": "#/definitions/ConnectorMemoryStatusModelV1"
+        },
+        "diskSpaceStatus": {
+          "$ref": "#/definitions/ConnectorDiskSpaceStatusModelV1"
+        },
+        "cpuStatus": {
+          "$ref": "#/definitions/ConnectorCPUStatusModelV1"
+        },
+        "machineStatus": {
+          "$ref": "#/definitions/ConnectorMachineStatusModelV1"
+        }
+      }
+    },
+    "ConnectorStatus": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Unavailable",
+        "AvailableTcpOnly",
+        "AvailableUdpOnly",
+        "Available",
+        "Pending",
+        "AvailableAgentlessOnly",
+        "AvailableAgentOnly"
+      ],
+      "enum": [
+        "Unavailable",
+        "AvailableTcpOnly",
+        "AvailableUdpOnly",
+        "Available",
+        "Pending",
+        "AvailableAgentlessOnly",
+        "AvailableAgentOnly"
+      ]
+    },
+    "ConnectorNetworkStatusModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incomingKB",
+        "outgoingKB"
+      ],
+      "properties": {
+        "incomingKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "outgoingKB": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "ConnectorMemoryStatusModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalKB",
+        "usedKB",
+        "freeKB",
+        "totalSwapKB",
+        "usedSwapKB",
+        "freeSwapKB"
+      ],
+      "properties": {
+        "totalKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "usedKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "freeKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalSwapKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "usedSwapKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "freeSwapKB": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "ConnectorDiskSpaceStatusModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalKB",
+        "usedKB",
+        "freeKB"
+      ],
+      "properties": {
+        "totalKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "usedKB": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "freeKB": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "ConnectorCPUStatusModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "numOfCpus",
+        "totalUsedPercentage"
+      ],
+      "properties": {
+        "numOfCpus": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalUsedPercentage": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "ConnectorMachineStatusModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "operationSystem": {
+          "type": "string"
+        }
+      }
+    },
+    "ConnectorZoneModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "purpose"
+          ],
+          "properties": {
+            "connectors": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            },
+            "type": {
+              "$ref": "#/definitions/ConnectorZoneType"
+            },
+            "purpose": {
+              "$ref": "#/definitions/ConnectorZonePurpose"
+            }
+          }
+        }
+      ]
+    },
+    "ConnectorZoneType": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Regular",
+        "InternetZone",
+        "ExternalPublicZone"
+      ],
+      "enum": [
+        "Regular",
+        "InternetZone",
+        "ExternalPublicZone"
+      ]
+    },
+    "ConnectorZonePurpose": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Access",
+        "LogStreaming"
+      ],
+      "enum": [
+        "Access",
+        "LogStreaming"
+      ]
+    },
+    "DescriptionNamedModelBase": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfConnectorZoneModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConnectorZoneModelV1"
+          }
+        }
+      }
+    },
+    "CustomIpCategoryModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "includedIps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludedIps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "connectorZoneId": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfCustomIpCategoryModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CustomIpCategoryModelV1"
+          }
+        }
+      }
+    },
+    "DomainNameCertificateModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "validFrom",
+            "validUntil"
+          ],
+          "properties": {
+            "commonName": {
+              "type": "string"
+            },
+            "validFrom": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "validUntil": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "certificateThumbprint": {
+              "type": "string"
+            },
+            "originalFileName": {
+              "type": "string"
+            },
+            "certificateIssuedBy": {
+              "type": "string"
+            },
+            "certificateIssuedTo": {
+              "type": "string"
+            },
+            "certificateChain": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "certificateSerialNumber": {
+              "type": "string"
+            },
+            "subjectAlternativeName": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "certificatePassword": {
+              "type": "string"
+            },
+            "certificateBase64": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfDomainNameCertificateModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DomainNameCertificateModelV1"
+          }
+        }
+      }
+    },
+    "ReplaceCertificatePfxRequestModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "certificateBase64": {
+          "type": "string"
+        },
+        "certificatePassword": {
+          "type": "string"
+        }
+      }
+    },
+    "GroupModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "users": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfGroupModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GroupModelV1"
+          }
+        }
+      }
+    },
+    "HealthResponseModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "timestamp"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/HealthStatus"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "service": {
+          "type": "string"
+        },
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ComponentHealth"
+          }
+        }
+      }
+    },
+    "HealthStatus": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Unhealthy",
+        "Degraded",
+        "Healthy"
+      ],
+      "enum": [
+        "Unhealthy",
+        "Degraded",
+        "Healthy"
+      ]
+    },
+    "ComponentHealth": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        },
+        "errorMessage": {
+          "type": "string"
+        }
+      }
+    },
+    "IpFeedCategoryModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "includedIps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludedIps": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "connectorZoneId": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfIpFeedCategoryModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IpFeedCategoryModelV1"
+          }
+        }
+      }
+    },
+    "IpSecLocationsResponseModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ipSecLocations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IpSecCountryModel"
+          }
+        }
+      }
+    },
+    "IpSecCountryModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "country": {
+          "type": "string"
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IpSecLocationModel"
+          }
+        }
+      }
+    },
+    "IpSecLocationModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "latitude": {
+          "type": "string"
+        },
+        "longitude": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "fqdn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IpSecFqdnModel"
+          }
+        }
+      }
+    },
+    "IpSecFqdnModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "LocationModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "subLocations": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            },
+            "tunnels": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfLocationModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LocationModelV1"
+          }
+        }
+      }
+    },
+    "SslExclusionModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "excludedDomains": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "$ref": "#/definitions/SslExclusionType"
+            }
+          }
+        }
+      ]
+    },
+    "SslExclusionType": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Predefined",
+        "Custom"
+      ],
+      "enum": [
+        "Predefined",
+        "Custom"
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfSslExclusionModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SslExclusionModelV1"
+          }
+        }
+      }
+    },
+    "SubLocationModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ipRanges",
+            "type",
+            "locationId"
+          ],
+          "properties": {
+            "ipRanges": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "locationId": {
+              "type": "string",
+              "format": "guid",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfSubLocationModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SubLocationModelV1"
+          }
+        }
+      }
+    },
+    "TunnelModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/NamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "authenticationID",
+            "authenticationPsk",
+            "locationID"
+          ],
+          "properties": {
+            "authenticationID": {
+              "type": "string",
+              "minLength": 1
+            },
+            "authenticationPsk": {
+              "type": "string",
+              "minLength": 1
+            },
+            "locationID": {
+              "type": "string",
+              "format": "guid",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfTunnelModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TunnelModelV1"
+          }
+        }
+      }
+    },
+    "TunnelStatusResponseModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "guid"
+        },
+        "status": {
+          "readOnly": true,
+          "allOf": [
+            {
+              "$ref": "#/definitions/TunnelStatus"
+            }
+          ]
+        }
+      }
+    },
+    "TunnelStatus": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Unknown",
+        "Online",
+        "Offline",
+        "Error"
+      ],
+      "enum": [
+        "Unknown",
+        "Online",
+        "Offline",
+        "Error"
+      ]
+    },
+    "UserModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "userName",
+            "email",
+            "firstName",
+            "lastName",
+            "enabled"
+          ],
+          "properties": {
+            "userName": {
+              "type": "string",
+              "minLength": 3
+            },
+            "email": {
+              "type": "string",
+              "minLength": 1
+            },
+            "firstName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lastName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "expiration": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "groups": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SlimModelV1"
+              }
+            },
+            "sshPrivateKey": {
+              "type": "string"
+            },
+            "hasSshPrivateKey": {
+              "type": "boolean",
+              "readOnly": true
+            }
+          }
+        }
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfUserModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserModelV1"
+          }
+        }
+      }
+    },
+    "WebCategoryModelV1": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/DescriptionNamedModelBase"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "includedDomainsOrUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludedDomainsOrUrls": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "connectorZoneId": {
+              "type": "string",
+              "format": "guid"
+            },
+            "type": {
+              "readOnly": true,
+              "allOf": [
+                {
+                  "$ref": "#/definitions/SwgCategoryType"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "SwgCategoryType": {
+      "type": "string",
+      "description": "",
+      "x-enumNames": [
+        "Predefined",
+        "Custom",
+        "AllTraffic",
+        "PredefinedIp",
+        "IpFeed",
+        "CustomIp"
+      ],
+      "enum": [
+        "Predefined",
+        "Custom",
+        "AllTraffic",
+        "PredefinedIp",
+        "IpFeed",
+        "CustomIp"
+      ]
+    },
+    "PagedApiResponseOfIEnumerableOfWebCategoryModelV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageNumber",
+        "pageSize",
+        "totalPages",
+        "totalRecords"
+      ],
+      "properties": {
+        "pageNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "firstPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "lastPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalRecords": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "previousPage": {
+          "type": "string",
+          "format": "uri"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WebCategoryModelV1"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "OAuthBearerToken": {
+      "type": "apiKey",
+      "description": "Copy 'Bearer ' + valid JWT token into field",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "OAuthBearerToken": []
+    }
+  ]
+}
