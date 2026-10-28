@@ -1,120 +1,100 @@
-# HPE Aruba SSE (Atmos) Connector Automation & Evaluation Framework
+# HPE Aruba SSE Connector Evaluation Framework
 
-Practical measurement, automated provisioning, high-availability verification, and threat intelligence integration framework for HPE Aruba Networking SSE (Axis Atmos) Connectors. Developed as part of a BSc Thesis at Budapest University of Technology and Economics (BME).
+Measurement and automation tooling for a BSc thesis at the Budapest University of Technology and
+Economics (BME VIK) on HPE Aruba Networking SSE (Axis Atmos) connectors. The testbed is an HPE
+Aruba SSE Cloud Edge setup with two VMware ESXi hosts, one connector VM per host.
 
-## Project Overview
+> **Validation status (short):** all components have been developed and tested **offline only**
+> (unit and integration tests with simulated clocks, mocked SSH/HTTP/API and synthetic data). No
+> live ESXi, connector, SSE data-path or Admin API run has been performed yet. Figures produced
+> from dry-run data are watermarked **SIMULATED – NOT A REAL MEASUREMENT** and are not
+> experimental results. Details: [docs/validation-status.md](docs/validation-status.md).
 
-This repository provides an automated, reproducible research and measurement framework structured around four core pillars:
+## The four experiments
 
-1. **01-load-test**: Baseline capacity, throughput (RPS), and latency distribution (p95/p99) characterization using `hey` and `k6` under stepped concurrent workloads.
-2. **02-scaler-poc**: Resource telemetry daemon (monitoring guest CPU utilization) triggering event-driven horizontal autoscaling via VMware ESXi 6.7.0 CLI (`vim-cmd`).
-3. **03-failover**: High-resolution network failover probes measuring tunnel convergence, packet retransmissions, and service restoration timing during simulated node/zone outages.
-4. **04-threat-intel**: Automated security intelligence ingestion consuming public malicious indicators (abuse.ch URLhaus) and synchronizing threat policies via the Atmos Admin REST API.
+| # | Question | Module |
+|---|---|---|
+| 1 | Capacity and load tolerance of access through a connector | `01-load-test/` |
+| 2 | CPU-threshold activation of a pre-configured secondary connector VM (power-on over ESXi SSH, no cloning) | `02-scaler-poc/` |
+| 3 | Availability and recovery during a manually injected connector failure | `03-failover/` |
+| 4 | URLhaus indicator synchronisation and the *perceived* SWG blocking delay, measured with an own, harmless canary host | `04-threat-intel/` |
 
----
+`00-preflight/` checks testbed assumptions read-only; `05-results/` processes the outputs of all
+four experiments into figures, CSV files and a processing manifest.
 
-## Repository Structure
+## Repository structure
 
 ```text
 hpe-atmos-sse-automation/
-├── 01-load-test/               # Load and performance benchmarking scripts
-├── 02-scaler-poc/              # Telemetry-based autoscaling daemon
-├── 03-failover/                # High-frequency network convergence probes
-├── 04-threat-intel/            # Threat feed ingestion & Atmos API sync
-├── .env.example                # Configuration template for sensitive variables
-├── .gitignore                  # Excludes secrets, metrics, and network captures
-├── LICENSE                     # MIT License
-├── README.md                   # Project documentation
-└── requirements.txt            # Python package dependencies
+├── 00-preflight/        read-only testbed pre-flight check
+├── 01-load-test/        hey/k6 load tests, iperf3 path comparison, connector-VM telemetry (sar)
+├── 02-scaler-poc/       CPU-threshold activation daemon for the secondary connector VM
+├── 03-failover/         TCP/HTTP/persistent availability probes, operator markers, analysis
+├── 04-threat-intel/     URLhaus sync into a custom web category; canary blocking experiment
+├── 05-results/          common result processing and figures (scan -> reviewed spec -> process)
+├── docs/                architecture, measurement guide, validation status
+├── tests/               offline test suite (unittest; no network)
+├── .env.example         configuration template (copy to .env; never commit .env)
+├── requirements*.txt    Python dependencies (measurement / development / result processing)
+└── LICENSE              MIT
 ```
 
----
+## Prerequisites
 
-## Getting Started
+- Python 3 (the offline test suite was run with Python 3.13 on Windows 11).
+- Python packages: `requirements.txt` (measurement tools), `requirements-results.txt` (figures),
+  `requirements-dev.txt` (optional pytest; the suite itself uses `unittest`).
+- External tools, depending on the experiment: [`hey`](https://github.com/rakyll/hey),
+  [`k6`](https://k6.io/), `iperf3`, and `sysstat` (`sar`, `sadf`) on the connector VMs.
+- For live runs: an Atmos Admin API token, SSH access to the connector VMs and the ESXi host,
+  host keys in `known_hosts`, and the operator prerequisites listed in
+  [docs/validation-status.md](docs/validation-status.md).
 
-### 1. Prerequisites
-- Python 3.10 or newer
-- Network access to HPE Aruba SSE Management Tenant (`admin-api.axissecurity.com`)
-- Administrative API Token configured in Atmos (`Settings > Admin API`)
-- Target host/VM for Connector deployment (Ubuntu 24.04 LTS recommended)
+## Installation
 
-### 2. Installation
-Clone the repository:
 ```bash
 git clone https://github.com/<your-username>/hpe-atmos-sse-automation.git
 cd hpe-atmos-sse-automation
+python -m pip install -r requirements.txt -r requirements-results.txt
+cp .env.example .env    # then edit .env; secrets are read from the environment only
 ```
 
-Install Python dependencies:
+## Quick start (offline, no testbed needed)
+
+Run the offline test suite (no network, SSH or API access; Bash- and node-based tests are
+skipped with a reason if no suitable runtime is present):
+
 ```bash
-pip install -r requirements.txt
+python -m unittest discover -s tests
 ```
 
-### 3. Environment Configuration
-Duplicate the configuration template and provide your deployment parameters:
+Try the simulated modes (every output is labelled as simulated):
+
 ```bash
-cp .env.example .env
+python 01-load-test/run_hey_stepped.py --dry-run --run-id DEMO-1
+python 02-scaler-poc/scaler_daemon.py --dry-run
+python 03-failover/failover_probe.py run --probe tcp --run-id DEMO-1 --dry-run --duration-sec 60
+python 03-failover/failover_probe.py analyze --probe tcp --run-id DEMO-1
 ```
 
-Edit `.env` with your active endpoints and tokens:
-```dotenv
-# ==============================================================================
-# Target Workload & Endpoints
-# ==============================================================================
-TARGET_APP_URL= https://sr-target-web-szinvanet.axisapps.io/
-BACKEND_HOST=10.0.1.123
-TCP_TARGET_PORT=443
+Note: `--help` and `--dry-run` never read `.env` (they use an empty, synthetic configuration);
+the live modes load `.env` from the working directory and report its errors only when they need
+the affected value.
 
-# ==============================================================================
-# Pillar 2: Autoscaling Telemetry & VMware ESXi Lifecycle Control
-# ==============================================================================
-# Primary Connector Guest SSH (ibm09esxi) - CPU Telemetry
-CONNECTOR_1_IP=10.0.1.121
-CONNECTOR_SSH_USER=your_ssh_user
-CONNECTOR_SSH_PASSWORD=your_guest_ssh_password
+For live measurements follow [docs/measurement-guide.md](docs/measurement-guide.md), starting with
+the low-load, single-connector pilot.
 
-# Secondary Connector Hypervisor (ibm06esxi) - VM Lifecycle & Telemetry
-ESXI_HOST=ibm06esxi.szinva.net
-ESXI_USER=root
-ESXI_PASSWORD=your_esxi_root_password
-CONNECTOR_2_VMID=12
-CONNECTOR_2_IP=10.0.1.122
+## Documentation
 
-# Thresholds & Windows
-CPU_SCALE_OUT_THRESHOLD=80.0
-CPU_SCALE_IN_THRESHOLD=30.0
-TRIGGER_WINDOW_SEC=15.0
-POLL_INTERVAL_SEC=5.0
-SCALE_IN_COOLDOWN_SEC=60.0
+- [docs/architecture.md](docs/architecture.md) – file responsibilities, entry points, inputs,
+  outputs and side effects, and how the components interact.
+- [docs/measurement-guide.md](docs/measurement-guide.md) – which machine runs which command,
+  configuration and `RUN_ID` handling, telemetry export, result processing, pilot procedure,
+  stopping and recovery.
+- [docs/validation-status.md](docs/validation-status.md) – offline checks completed, live checks
+  not yet performed, operator prerequisites, known limitations and open questions.
 
-# ==============================================================================
-# Pillar 4: HPE Aruba SSE Cloud Management REST API
-# ==============================================================================
-ATMOS_BASE_URL=https://admin-api.axissecurity.com/api/v1.0
-ATMOS_API_KEY=your_atmos_jwt_token
-```
-
----
-
-## Module Usage
-
-### Threat Intelligence Feed Sync (Pillar 4)
-Polls the latest verified malware distribution URLs from abuse.ch and synchronizes them with the Atmos custom category policy:
-```bash
-python 04-threat-intel/sync_threat_intel.py
-```
-
-### Autoscaler Daemon (Pillar 2)
-Runs continuous telemetry checks and manages hypervisor node states based on configured load thresholds:
-```bash
-python 02-scaler-poc/scaler_daemon.py
-```
-
----
-
-## Academic Citation
-
-If you use or reference this framework in related academic research or projects, please cite:
+## Academic citation
 
 ```bibtex
 @bachelorsthesis{slihoczki2026atmos,
@@ -125,11 +105,11 @@ If you use or reference this framework in related academic research or projects,
 }
 ```
 
----
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT – see [LICENSE](LICENSE).
 
 ## Author
-- **Richard Slihoczki** - BSc Student, Faculty of Electrical Engineering and Informatics (VIK), Budapest University of Technology and Economics (BME)
+
+Richard Slihoczki – BSc student, Faculty of Electrical Engineering and Informatics (VIK),
+Budapest University of Technology and Economics (BME).

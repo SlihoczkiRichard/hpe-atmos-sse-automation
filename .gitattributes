@@ -1,0 +1,2 @@
+# Shell scripts run on the Linux connector VMs and in Git Bash/WSL: keep LF even with core.autocrlf=true
+*.sh text eol=lf
