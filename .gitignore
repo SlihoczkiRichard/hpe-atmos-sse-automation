@@ -1,6 +1,26 @@
+# Local secrets
 .env
-*.sar
-*.pcap
-*.log
-__pycache__/
+.env.*
+!.env.example
+
+# Python environments and caches
+.venv/
 venv/
+__pycache__/
+*.py[cod]
+
+# Test caches and generated coverage reports
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Generated test execution logs
+test_run*.txt
+
+# Generated measurement output
+**/results/
+05-results/processed/
+connector_telemetry_*.txt
+connector_telemetry_*.sa

@@ -1,0 +1,2 @@
+# 05-results (result processing and figures); separate from the measurement requirements
+matplotlib>=3.8
