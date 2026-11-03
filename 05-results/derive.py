@@ -71,6 +71,7 @@ def hey_levels(levels, manifest):
         out.append({"concurrency": c, "status": lv.get("status", ""),
                     "successful_rps_median": num(lv.get("successful_rps_median")),
                     "primary_error_rate_max_run": num(lv.get("primary_error_rate_max_run")),
+                    "primary_error_rate_pooled": num(lv.get("primary_error_rate_pooled")),
                     "lat_all_responses_p95_ms_median": num(lv.get("lat_all_responses_p95_ms_median_of_runs")),
                     "lat_all_responses_p99_ms_median": num(lv.get("lat_all_responses_p99_ms_median_of_runs")),
                     "best_accepted_level": c == best})
@@ -320,6 +321,71 @@ def resources_by_level(run_rows):
                                                       if not is_nan(r["mem_available_kb_min"])), default=NAN)
         out.append(lv)
     return out
+
+
+SATURATION_ELASTICITY = 0.25
+CAPACITY_RULE = (f"capacity limit = the highest accepted level after which throughput stops scaling: the next level "
+                 f"is not accepted, or its median throughput grows by less than {SATURATION_ELASTICITY:g} x the "
+                 "relative concurrency increase (closed-loop load: unsaturated throughput grows proportionally)")
+
+
+def capacity_rows(hey_levels_rows, resource_levels):
+    """One row per hey level: throughput, latency, error rate, connector CPU, and the scaling elasticity
+    to the next level (relative throughput gain / relative concurrency gain)."""
+    cpu = {lv["concurrency"]: lv for lv in resource_levels}
+    levels = sorted(hey_levels_rows, key=lambda lv: lv["concurrency"])
+    rows = []
+    for i, lv in enumerate(levels):
+        c, r = lv["concurrency"], cpu.get(lv["concurrency"], {})
+        row = {"concurrency": c, "status": lv["status"],
+               "successful_rps_median": lv["successful_rps_median"],
+               "p95_ms_median": lv.get("lat_all_responses_p95_ms_median", NAN),
+               "p99_ms_median": lv.get("lat_all_responses_p99_ms_median", NAN),
+               "primary_error_rate_pooled": lv.get("primary_error_rate_pooled", NAN),
+               "cpu_not_idle_pct_mean_median": r.get("cpu_not_idle_pct_mean_median", NAN),
+               "cpu_not_idle_pct_mean_min": r.get("cpu_not_idle_pct_mean_min", NAN),
+               "cpu_not_idle_pct_mean_max": r.get("cpu_not_idle_pct_mean_max", NAN),
+               "cpu_runs_used": r.get("cpu_runs_used", 0),
+               "elasticity_to_next": NAN, "capacity_limit": False}
+        if i + 1 < len(levels):
+            nxt = levels[i + 1]
+            a, b = num(lv["successful_rps_median"]), num(nxt["successful_rps_median"])
+            if not (is_nan(a) or is_nan(b)) and a > 0:
+                row["elasticity_to_next"] = ((b - a) / a) / ((nxt["concurrency"] - c) / c)
+        rows.append(row)
+    for i, row in enumerate(rows):
+        if row["status"] != "accepted":
+            break
+        last = i + 1 == len(rows)
+        if last:
+            break
+        if rows[i + 1]["status"] != "accepted" or (not is_nan(row["elasticity_to_next"])
+                                                   and row["elasticity_to_next"] < SATURATION_ELASTICITY):
+            row["capacity_limit"] = True
+            break
+    return rows
+
+
+def capacity_summary(rows):
+    limit = next((r for r in rows if r["capacity_limit"]), None)
+    if limit is None:
+        top = max((r for r in rows if r["status"] == "accepted"), key=lambda r: r["concurrency"], default=None)
+        return {"capacity_limit_found": False, "rule": CAPACITY_RULE,
+                "statement": ("throughput still scaled at the highest accepted level"
+                              + (f" (c={top['concurrency']}, {top['successful_rps_median']:.0f} 1/s, connector CPU "
+                                 f"{_f0(top['cpu_not_idle_pct_mean_median'])} %)" if top else "")
+                              + ": the capacity limit lies above the tested range")}
+    return {"capacity_limit_found": True, "rule": CAPACITY_RULE, "concurrency": limit["concurrency"],
+            "successful_rps_median": limit["successful_rps_median"], "p95_ms_median": limit["p95_ms_median"],
+            "cpu_not_idle_pct_mean_median": limit["cpu_not_idle_pct_mean_median"],
+            "statement": (f"throughput stops scaling after c={limit['concurrency']} "
+                          f"({limit['successful_rps_median']:.0f} 1/s, p95 {_f0(limit['p95_ms_median'])} ms, "
+                          f"connector CPU {_f0(limit['cpu_not_idle_pct_mean_median'])} %); the CPU value is a "
+                          "correlation, not a proof of the bottleneck")}
+
+
+def _f0(value):
+    return "n/a" if is_nan(num(value)) else f"{num(value):.0f}"
 
 
 def window_description(warmup_sec):

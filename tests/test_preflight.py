@@ -227,5 +227,88 @@ class PreflightTests(OfflineTestCase):
         self.assertNotIn(SECRET, json.dumps(report))
 
 
+
+class VCenterPreflightTests(OfflineTestCase):
+    """C2_POWER_BACKEND=vcenter-api / manual: the ESXi SSH check is replaced and nothing is powered on."""
+
+    def setUp(self):
+        super().setUp()
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.known_hosts = os.path.join(tmp.name, "known_hosts")
+        with open(self.known_hosts, "w", encoding="utf-8") as f:
+            for host in ("192.0.2.11", "192.0.2.12"):
+                f.write(f"{host} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl\n")
+
+    def env(self, **extra):
+        env = {k: v for k, v in ENV.items() if not k.startswith("ESXI_") and k != "CONNECTOR_2_VMID"}
+        env.update(extra)
+        return env
+
+    def run_with(self, env, session=None, tcp_connect=None):
+        ssh = FakeSSH({"192.0.2.11": GUEST_OUTPUT, "192.0.2.12": GUEST_OUTPUT})
+        factory = pre.default_vcenter_factory(env)
+        p = pre.Preflight(env, ssh.factory, FakeHttp(api_routes()), [self.known_hosts],
+                          vcenter_factory=lambda: factory(session), tcp_connect=tcp_connect)
+        return p.run(), ssh
+
+    def vc_env(self):
+        return self.env(C2_POWER_BACKEND="vcenter-api", VCENTER_HOST="vcenter.test.invalid",
+                        VCENTER_USER="sse-scaler@vsphere.local", VCENTER_PASSWORD=SECRET)
+
+    def test_vcenter_checks_replace_esxi_and_never_power_on(self):
+        from test_scaler_power_backends import FakeVCenter, PASSWORD
+        env = self.vc_env()
+        env["VCENTER_PASSWORD"] = PASSWORD
+        fake = FakeVCenter("api", state="POWERED_ON")
+        checks, ssh = self.run_with(env, session=fake)
+        st = statuses(checks)
+        self.assertEqual(st["config.variables"], pre.OK)
+        self.assertEqual(st["vcenter.session"], pre.OK)
+        self.assertEqual(st["vcenter.c2_vm_lookup"], pre.OK)
+        self.assertEqual(st["vcenter.c2_power_state"], pre.OK)
+        self.assertEqual(st["c2.proc_stat"], pre.OK)  # C2 reported running -> guest checked
+        self.assertFalse(any(k.startswith("esxi.") for k in st))
+        posts = [c for c in fake.calls if c[0] == "POST"]
+        self.assertTrue(all(c[1].endswith("/api/session") for c in posts), posts)
+        self.assertNotIn(PASSWORD, json.dumps(checks))
+
+    def test_read_only_session_refuses_power_actions(self):
+        from test_scaler_power_backends import FakeVCenter
+        session = pre.ReadOnlyVCenterSession(FakeVCenter("api"))
+        with self.assertRaises(PermissionError):
+            session.post("https://vc/api/vcenter/vm/vm-1042/power", params={"action": "start"})
+        with self.assertRaises(PermissionError):
+            session.request("POST", "https://vc/rest/vcenter/vm/vm-1042/power/start")
+
+    def test_vcenter_login_failure_is_reported(self):
+        from test_scaler_power_backends import FakeVCenter
+        checks, _ = self.run_with(self.vc_env(), session=FakeVCenter("api", user_ok=False))
+        st = statuses(checks)
+        self.assertEqual(st["vcenter.session"], pre.FAILED)
+        self.assertEqual(st["vcenter.c2_vm_lookup"], pre.NOT_CHECKED)
+        self.assertEqual(st["c2.proc_stat"], pre.NOT_CHECKED)
+
+    def test_missing_vcenter_settings_fail_the_config_check(self):
+        env = self.env(C2_POWER_BACKEND="vcenter-api")
+        checks, _ = self.run_with(env)
+        st = statuses(checks)
+        self.assertEqual(st["config.variables"], pre.FAILED)
+        self.assertEqual(st["vcenter.session"], pre.NOT_CHECKED)
+
+    def test_manual_backend_uses_the_tcp_proxy_only(self):
+        def refused(*_):
+            raise ConnectionRefusedError()
+        checks, ssh = self.run_with(self.env(C2_POWER_BACKEND="manual"), tcp_connect=refused)
+        st = statuses(checks)
+        self.assertEqual(st["manual.c2_state_proxy"], pre.OK)
+        self.assertEqual(st["c2.proc_stat"], pre.NOT_CHECKED)
+        self.assertEqual(st["config.variables"], pre.OK)
+
+    def test_unknown_backend_fails(self):
+        checks, _ = self.run_with(self.env(C2_POWER_BACKEND="ipmi"))
+        self.assertEqual(statuses(checks)["config.c2_power_backend"], pre.FAILED)
+
+
 if __name__ == "__main__":
     unittest.main()

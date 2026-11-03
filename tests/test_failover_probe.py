@@ -36,6 +36,11 @@ def response(status=200, body=TOKEN.encode(), headers=None, length=True):
     return ("\r\n".join(lines) + "\r\n\r\n").encode() + body
 
 
+def chunked(chunks=(TOKEN.encode(),), headers=None, terminate=True):
+    data = b"".join(f"{len(c):x}\r\n".encode() + c + b"\r\n" for c in chunks) + (b"0\r\n\r\n" if terminate else b"")
+    return response(body=b"", headers={"Transfer-Encoding": "chunked", **(headers or {})}, length=False) + data
+
+
 class FakeSocket:
     """Each sendall() of a request makes the next scripted item the response. An item is bytes
     (b"" = EOF) or an exception raised on sendall."""
@@ -226,19 +231,34 @@ class PersistentProbeTests(OfflineTestCase):
             probe.conn.request("GET", "/")
         self.assertEqual(factory.real_connects, 1)
 
+    def test_chunked_responses_keep_the_connection(self):
+        half = len(TOKEN) // 2
+        probe, factory = self.make(chunked(), chunked((TOKEN[:half].encode(), TOKEN[half:].encode())), response())
+        self.assertEqual([probe.probe().ok for _ in range(3)], [True, True, True])
+        self.assertEqual((factory.real_connects, probe.connect_calls), (1, 1))
+
+    def test_chunked_content_mismatch_does_not_end_the_connection(self):
+        probe, _ = self.make(chunked((b"other",)), chunked())
+        res = probe.probe()
+        self.assertEqual((res.error_class, res.ended), ("content_mismatch", False))
+        self.assertTrue(probe.probe().ok)
+
     def test_unsafe_bodies_end_the_probe(self):
         cases = [
-            (response(body=b"", headers={"Transfer-Encoding": "chunked"}, length=False) + b"0\r\n\r\n",
-             "body_length_unknown"),
+            (chunked((b"x" * 100,)), "body_too_large"),
+            (chunked((b"x" * 40, b"y" * 40)), "body_too_large"),
             (response(length=False), "body_length_unknown"),
             (response(body=b"x" * 100), "body_too_large"),
             (response(headers={"Content-Length": "40"}), "eof"),            # announced more than sent
+            (chunked(terminate=False), None),                                 # no terminating chunk
         ]
         for item, cls in cases:
             with self.subTest(cls=cls):
                 probe, factory = self.make(item, response())
                 res = probe.probe()
-                self.assertEqual((res.ok, res.error_class, res.ended), (False, cls, True))
+                self.assertEqual((res.ok, res.ended), (False, True), res)
+                if cls:
+                    self.assertEqual(res.error_class, cls)
                 self.assertEqual(probe.probe().error_class, "not_connected")
                 self.assertEqual(factory.real_connects, 1)
 

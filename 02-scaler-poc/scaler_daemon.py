@@ -6,8 +6,13 @@ Author: Slihoczki Richárd Alex (BME BSc Thesis)
 Architecture: HPE Aruba SSE Cloud Edge with two-host VMware ESXi testbed.
 
 - Samples SR-CONN01 guest CPU over SSH (two /proc/stat snapshots).
-- Powers on SR-CONN02 on its ESXi host via `vim-cmd` once the scale-out threshold
-  has been held for the trigger window.
+- Powers on SR-CONN02 once the scale-out threshold has been held for the trigger window, through
+  the backend chosen with C2_POWER_BACKEND:
+    esxi-ssh     `vim-cmd` over SSH on the ESXi host (default; needs host-level SSH)
+    vcenter-api  vCenter REST API with a least-privilege user scoped to the SR-CONN02 VM
+    manual       the operator presses Power On when prompted; the C2 power state is then a proxy
+                 (TCP connect to the guest), so VM_POWERED_ON means "guest network up" and every
+                 offset includes the operator's reaction time
 - Records every activation milestone as a separately observed state:
 
     THRESHOLD_MET                     scale-out condition held for the trigger window (time of the
@@ -68,7 +73,7 @@ be validated by measurements on the testbed.
   --allow-scale-in-manual-c2, and never forces a power-off unless explicitly allowed. The shutdown
   itself is still followed by bounded polling (up to SHUTDOWN_TIMEOUT_SEC).
 
-Secrets (SSH/ESXi passwords, Atmos API key) are read from the environment only, never from the
+Secrets (SSH/ESXi/vCenter passwords, Atmos API key) are read from the environment only, never from the
 command line. Nothing is loaded from .env and no connection is opened at import time.
 """
 
@@ -95,6 +100,11 @@ UNKNOWN = "unknown"
 
 POWER_ON = "power_on"
 SHUTDOWN = "shutdown"
+
+POWER_BACKEND_ESXI_SSH = "esxi-ssh"
+POWER_BACKEND_VCENTER_API = "vcenter-api"
+POWER_BACKEND_MANUAL = "manual"
+POWER_BACKENDS = (POWER_BACKEND_ESXI_SSH, POWER_BACKEND_VCENTER_API, POWER_BACKEND_MANUAL)
 
 CONNECTION_CHECK_NONE = "none"
 CONNECTION_CHECK_SS = "ss-established"
@@ -157,6 +167,15 @@ class ScalerConfig:
     esxi_user: str = "root"
     esxi_password: str = field(default="", repr=False)
     c2_vmid: int = 0
+    # How SR-CONN02 is powered on: esxi-ssh (vim-cmd), vcenter-api (REST, least-privilege user) or manual
+    c2_power_backend: str = POWER_BACKEND_ESXI_SSH
+    vcenter_host: str = ""
+    vcenter_user: str = ""
+    vcenter_password: str = field(default="", repr=False)
+    vcenter_vm_name: str = "SR-CONN02"
+    vcenter_ca_bundle: str = ""
+    vcenter_api: str = "auto"
+    manual_state_port: int = 22
 
     # Decision logic
     scale_out_pct: float = 80.0
@@ -209,7 +228,8 @@ class ScalerConfig:
     output_dir: str = ""
 
     def secrets(self):
-        return [s for s in (self.c1_password, self.c2_password, self.esxi_password, self.atmos_api_key) if s]
+        return [s for s in (self.c1_password, self.c2_password, self.esxi_password, self.vcenter_password,
+                            self.atmos_api_key) if s]
 
 
 def validate_config(cfg):
@@ -225,12 +245,34 @@ def validate_config(cfg):
             raise ValueError(f"{name} must not be negative")
     if cfg.c2_connection_check not in (CONNECTION_CHECK_NONE, CONNECTION_CHECK_SS):
         raise ValueError(f"unknown c2_connection_check: {cfg.c2_connection_check}")
+    if cfg.c2_power_backend not in POWER_BACKENDS:
+        raise ValueError(f"C2_POWER_BACKEND must be one of {', '.join(POWER_BACKENDS)}")
     if cfg.dry_run:
         return
-    if not isinstance(cfg.c2_vmid, int) or cfg.c2_vmid <= 0:
-        raise ValueError("CONNECTOR_2_VMID must be a positive integer")
-    if not cfg.c1_ip or not cfg.esxi_host:
-        raise ValueError("CONNECTOR_1_IP and ESXI_HOST are required")
+    if not cfg.c1_ip:
+        raise ValueError("CONNECTOR_1_IP is required")
+    if cfg.c2_power_backend == POWER_BACKEND_ESXI_SSH:
+        if not isinstance(cfg.c2_vmid, int) or cfg.c2_vmid <= 0:
+            raise ValueError("CONNECTOR_2_VMID must be a positive integer")
+        if not cfg.esxi_host:
+            raise ValueError("ESXI_HOST is required for C2_POWER_BACKEND=esxi-ssh")
+    elif cfg.c2_power_backend == POWER_BACKEND_VCENTER_API:
+        for key, value in (("VCENTER_HOST", cfg.vcenter_host), ("VCENTER_USER", cfg.vcenter_user),
+                           ("VCENTER_PASSWORD", cfg.vcenter_password), ("VCENTER_VM_NAME", cfg.vcenter_vm_name)):
+            if not value:
+                raise ValueError(f"{key} is required for C2_POWER_BACKEND=vcenter-api")
+        if cfg.vcenter_api not in ("auto", "api", "rest"):
+            raise ValueError("VCENTER_API must be auto, api or rest")
+        if cfg.vcenter_ca_bundle and not os.path.isfile(cfg.vcenter_ca_bundle):
+            raise ValueError(f"VCENTER_CA_BUNDLE {cfg.vcenter_ca_bundle} does not exist")
+    else:  # manual
+        if not cfg.c2_ip:
+            raise ValueError("C2_POWER_BACKEND=manual requires CONNECTOR_2_IP (its power state is inferred "
+                             "from the guest's TCP port)")
+        if cfg.enable_scale_in:
+            raise ValueError("scale-in is not available with C2_POWER_BACKEND=manual")
+        if not 0 < int(cfg.manual_state_port) < 65536:
+            raise ValueError("MANUAL_STATE_PORT out of range")
     if cfg.enable_scale_in and not cfg.c2_ip:
         raise ValueError("scale-in requires CONNECTOR_2_IP (C2 CPU telemetry)")
     if cfg.c2_connection_check == CONNECTION_CHECK_SS:
@@ -515,6 +557,212 @@ class ESXiHost:
 
     def power_off(self):
         return self.executor.run(f"vim-cmd vmsvc/power.off {self.vmid}")
+
+
+class VCenterVM:
+    """Controls SR-CONN02 through the vCenter REST API with a least-privilege user.
+
+    Intended for a vCenter role that only holds Virtual machine > Interaction > Power on / Power off,
+    assigned on the SR-CONN02 VM alone (no propagation): the user can then neither see nor touch any
+    other VM, and no host-level setting (e.g. ESXi SSH) has to be changed.
+
+    Both API generations are supported (api="auto" tries the first and falls back to the second):
+      "api"   vSphere 7.0+   POST /api/session, /api/vcenter/vm/{vm}/power?action=start|stop
+      "rest"  vSphere 6.5+   POST /rest/com/vmware/cis/session, /rest/vcenter/vm/{vm}/power/start|stop
+    The VM is looked up by its exact name once; exactly one match is required. A 401 (expired session)
+    triggers one re-login. Same interface as ESXiHost: CommandResult.code is 0 on success, the HTTP
+    status on an HTTP error and -1 on a transport error. TLS is always verified (verify=CA bundle path
+    or True); the password never appears in a result or error text."""
+
+    STATES = {"POWERED_ON": RUNNING, "POWERED_OFF": STOPPED, "SUSPENDED": SUSPENDED}
+
+    def __init__(self, host, user, password, vm_name, verify=True, timeout=10.0, session=None, api="auto"):
+        if api not in ("auto", "api", "rest"):
+            raise ValueError("api must be auto, api or rest")
+        self.base = host if host.startswith("https://") else f"https://{host}"
+        self.base = self.base.rstrip("/")
+        self.user = user
+        self._password = password
+        self.vm_name = vm_name
+        self.verify = verify
+        self.timeout = timeout
+        self.api = api
+        self._session = session
+        self._token = None
+        self._vm_id = None
+
+    # --- plumbing ----------------------------------------------------------------
+    def _http(self):
+        if self._session is None:
+            self._session = requests.Session()
+        return self._session
+
+    def _login(self):
+        """Creates a session token; resolves api="auto" on the first successful login."""
+        flavors = ("api", "rest") if self.api == "auto" else (self.api,)
+        last = ""
+        for flavor in flavors:
+            path = "/api/session" if flavor == "api" else "/rest/com/vmware/cis/session"
+            resp = self._http().post(self.base + path, auth=(self.user, self._password),
+                                     verify=self.verify, timeout=self.timeout)
+            if resp.status_code == 404 and self.api == "auto":
+                last = f"{path} -> HTTP 404"
+                continue
+            if resp.status_code not in (200, 201):
+                raise VCenterError(resp.status_code, f"login failed: HTTP {resp.status_code}"
+                                   + (" (wrong user/password?)" if resp.status_code == 401 else ""))
+            body = resp.json()
+            token = body.get("value") if isinstance(body, dict) else body
+            if not isinstance(token, str) or not token:
+                raise VCenterError(-1, "login response holds no session token")
+            self.api, self._token = flavor, token
+            return
+        raise VCenterError(404, f"no vCenter REST session endpoint found ({last})")
+
+    def _call(self, method, path_api, path_rest, params=None, retry=True):
+        if self._token is None:
+            self._login()
+        path = path_api if self.api == "api" else path_rest
+        resp = self._http().request(method, self.base + path, params=params,
+                                    headers={"vmware-api-session-id": self._token},
+                                    verify=self.verify, timeout=self.timeout)
+        if resp.status_code == 401 and retry:
+            self._token = None
+            return self._call(method, path_api, path_rest, params, retry=False)
+        return resp
+
+    @staticmethod
+    def _value(resp):
+        body = resp.json()
+        return body["value"] if isinstance(body, dict) and "value" in body else body
+
+    @staticmethod
+    def _http_error(resp, what):
+        detail = ""
+        try:
+            body = resp.json()
+            msgs = (body.get("value", body) if isinstance(body, dict) else {}) or {}
+            msgs = msgs.get("messages") if isinstance(msgs, dict) else None
+            if msgs:
+                detail = "; " + str(msgs[0].get("default_message", ""))[:200]
+            elif isinstance(body, dict) and body.get("error_type"):
+                detail = f"; {body['error_type']}"
+        except ValueError:
+            pass
+        hint = " (the vCenter user lacks this privilege on the VM)" if resp.status_code == 403 else ""
+        return f"{what}: HTTP {resp.status_code}{hint}{detail}"
+
+    def vm_id(self):
+        if self._vm_id is None:
+            if self._token is None:
+                self._login()  # resolves the API flavor, which decides the filter syntax
+            key = "names" if self.api == "api" else "filter.names"
+            resp = self._call("GET", "/api/vcenter/vm", "/rest/vcenter/vm", params={key: self.vm_name})
+            if resp.status_code != 200:
+                raise VCenterError(resp.status_code, self._http_error(resp, "VM lookup"))
+            matches = [vm for vm in self._value(resp) or [] if vm.get("name") == self.vm_name]
+            if len(matches) != 1:
+                raise VCenterError(-1, f"VM lookup: {len(matches)} VMs named {self.vm_name!r} visible to "
+                                       f"{self.user} (exactly one is required)")
+            self._vm_id = matches[0]["vm"]
+        return self._vm_id
+
+    def _run(self, what, method, path_api, path_rest, params_api=None, params_rest=None):
+        try:
+            vm = self.vm_id()
+            params = params_api if self.api == "api" else params_rest
+            resp = self._call(method, path_api.format(vm=vm), path_rest.format(vm=vm), params=params)
+        except VCenterError as exc:
+            return CommandResult(exc.status, "", str(exc)), None
+        except requests.RequestException as exc:
+            return CommandResult(-1, "", f"vCenter request error ({self.base}): {type(exc).__name__}"), None
+        except (ValueError, KeyError, TypeError) as exc:
+            return CommandResult(-1, "", f"vCenter {what}: unexpected response ({type(exc).__name__})"), None
+        if not 200 <= resp.status_code < 300:
+            return CommandResult(resp.status_code, "", self._http_error(resp, what)), resp
+        return CommandResult(0, f"HTTP {resp.status_code}", ""), resp
+
+    # --- ESXiHost interface ------------------------------------------------------
+    def get_power_state(self):
+        res, resp = self._run("power state", "GET", "/api/vcenter/vm/{vm}/power", "/rest/vcenter/vm/{vm}/power")
+        if res.code != 0:
+            return UNKNOWN, res.err
+        try:
+            raw = self._value(resp).get("state")
+        except (ValueError, AttributeError):
+            return UNKNOWN, "vCenter power state: unexpected response"
+        state = self.STATES.get(raw, UNKNOWN)
+        return state, ("" if state != UNKNOWN else f"unrecognised vCenter power state: {raw!r}")
+
+    def power_on(self):
+        return self._run("power on", "POST", "/api/vcenter/vm/{vm}/power", "/rest/vcenter/vm/{vm}/power/start",
+                         params_api={"action": "start"})[0]
+
+    def shutdown(self):
+        return self._run("guest shutdown", "POST", "/api/vcenter/vm/{vm}/guest/power",
+                         "/rest/vcenter/vm/{vm}/guest/power", params_api={"action": "shutdown"},
+                         params_rest={"action": "shutdown"})[0]
+
+    def power_off(self):
+        return self._run("power off", "POST", "/api/vcenter/vm/{vm}/power", "/rest/vcenter/vm/{vm}/power/stop",
+                         params_api={"action": "stop"})[0]
+
+
+class VCenterError(Exception):
+    def __init__(self, status, message):
+        super().__init__(message)
+        self.status = status
+
+
+class ManualPowerControl:
+    """Operator-assisted C2 activation for testbeds where no power-on credential may be used.
+
+    power_on() does not touch any hypervisor: it alerts the operator (console bell + message) to press
+    Power On for SR-CONN02 in the vSphere client, and returns at once with code 0. POWER_ON_SENT is
+    therefore the moment of the request; the operator's reaction time is part of every later offset.
+
+    There is no hypervisor view, so get_power_state() is a PROXY: RUNNING when a TCP connection to the
+    C2 guest (CONNECTOR_2_IP:MANUAL_STATE_PORT, default 22) succeeds, STOPPED when it is refused or times
+    out. "VM_POWERED_ON" thus means "guest network stack up", which is later than the real power-on.
+    Shutdown and power-off are refused (scale-in is rejected by validate_config for this backend)."""
+
+    def __init__(self, c2_ip, port=22, timeout=2.0, connect=None, notify=None):
+        self.c2_ip = c2_ip
+        self.port = int(port)
+        self.timeout = timeout
+        self._connect = connect or self._tcp_connect
+        self._notify = notify or self._console_notify
+        self.requests = 0
+
+    @staticmethod
+    def _tcp_connect(host, port, timeout):
+        import socket
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+
+    @staticmethod
+    def _console_notify(message):
+        sys.stderr.write("\a\n" + "!" * 72 + f"\n{message}\n" + "!" * 72 + "\n")
+        sys.stderr.flush()
+
+    def get_power_state(self):
+        try:
+            self._connect(self.c2_ip, self.port, self.timeout)
+            return RUNNING, ""
+        except OSError:
+            return STOPPED, ""
+
+    def power_on(self):
+        self.requests += 1
+        self._notify(f"MANUAL ACTION: power on SR-CONN02 now (vSphere client > SR-CONN02 > Power On). "
+                     f"Waiting for {self.c2_ip}:{self.port} to answer.")
+        return CommandResult(0, "manual power-on requested", "")
+
+    def shutdown(self):
+        return CommandResult(1, "", "manual backend: shutdown is not automated")
+
+    def power_off(self):
+        return CommandResult(1, "", "manual backend: power-off is not automated")
 
 
 class SimulatedESXi:
@@ -1377,6 +1625,26 @@ class ScalerDaemon:
 # Wiring and CLI
 # ------------------------------------------------------------------------------
 
+def build_power_control(cfg, ssh=None):
+    """The C2 power control selected by C2_POWER_BACKEND (opens no connection)."""
+    if cfg.c2_power_backend == POWER_BACKEND_VCENTER_API:
+        return VCenterVM(cfg.vcenter_host, cfg.vcenter_user, cfg.vcenter_password, cfg.vcenter_vm_name,
+                         verify=cfg.vcenter_ca_bundle or True, timeout=max(cfg.http_timeout_sec, 10.0),
+                         api=cfg.vcenter_api)
+    if cfg.c2_power_backend == POWER_BACKEND_MANUAL:
+        return ManualPowerControl(cfg.c2_ip, cfg.manual_state_port)
+    ssh = ssh or {}
+    return ESXiHost(SSHExecutor(cfg.esxi_host, cfg.esxi_user, cfg.esxi_password, **ssh), cfg.c2_vmid)
+
+
+def describe_power_control(cfg):
+    if cfg.c2_power_backend == POWER_BACKEND_VCENTER_API:
+        return f"vCenter API, VM '{cfg.vcenter_vm_name}' via {cfg.vcenter_host or '-'} as {cfg.vcenter_user or '-'}"
+    if cfg.c2_power_backend == POWER_BACKEND_MANUAL:
+        return (f"MANUAL power-on by the operator; state proxy = TCP {cfg.c2_ip or '-'}:{cfg.manual_state_port}")
+    return f"ESXi SSH, VMID {cfg.c2_vmid} on {cfg.esxi_host or '-'}"
+
+
 def build_daemon(cfg, clock=None, recorder=None):
     """Builds the daemon from a validated config. Dry-run uses only simulated components."""
     if cfg.dry_run:
@@ -1389,7 +1657,7 @@ def build_daemon(cfg, clock=None, recorder=None):
     if cfg.ssh_known_hosts:
         load_known_hosts(cfg.ssh_known_hosts)  # raises KnownHostsError; read only, opens no connection
     ssh = dict(known_hosts=cfg.ssh_known_hosts, insecure_host_keys=cfg.lab_insecure_ssh)
-    esxi = ESXiHost(SSHExecutor(cfg.esxi_host, cfg.esxi_user, cfg.esxi_password, **ssh), cfg.c2_vmid)
+    esxi = build_power_control(cfg, ssh)
     c1 = GuestCpuSampler(SSHExecutor(cfg.c1_ip, cfg.c1_user, cfg.c1_password, **ssh), cfg.cpu_sample_sec)
     c2_exec = SSHExecutor(cfg.c2_ip, cfg.c2_user, cfg.c2_password, **ssh) if cfg.c2_ip else None
     c2 = GuestCpuSampler(c2_exec, cfg.cpu_sample_sec) if c2_exec else None
@@ -1446,6 +1714,16 @@ def parse_args(argv, env):
     p.add_argument("--esxi-host", default=g("ESXI_HOST", ""), help="ESXi host of SR-CONN02")
     p.add_argument("--esxi-user", default=g("ESXI_USER", "root"))
     p.add_argument("--c2-vmid", type=int, default=g("CONNECTOR_2_VMID", "0"))
+    p.add_argument("--c2-power-backend", choices=POWER_BACKENDS, default=g("C2_POWER_BACKEND", POWER_BACKEND_ESXI_SSH),
+                   help="How SR-CONN02 is powered on (default: esxi-ssh)")
+    p.add_argument("--vcenter-host", default=g("VCENTER_HOST", ""), help="vCenter address (vcenter-api backend)")
+    p.add_argument("--vcenter-user", default=g("VCENTER_USER", ""), help="least-privilege vCenter user")
+    p.add_argument("--vcenter-vm-name", default=g("VCENTER_VM_NAME", "SR-CONN02"), help="exact VM name in vCenter")
+    p.add_argument("--vcenter-ca-bundle", default=g("VCENTER_CA_BUNDLE", ""), help="CA bundle of the vCenter certificate")
+    p.add_argument("--vcenter-api", choices=("auto", "api", "rest"), default=g("VCENTER_API", "auto"),
+                   help="vCenter REST generation: api (7.0+), rest (6.5/6.7) or auto-detect")
+    p.add_argument("--manual-state-port", type=int, default=g("MANUAL_STATE_PORT", "22"),
+                   help="manual backend: guest TCP port used as the C2 power-state proxy")
 
     p.add_argument("--scale-out-pct", type=float, default=g("CPU_SCALE_OUT_THRESHOLD", "80.0"))
     p.add_argument("--scale-in-pct", type=float, default=g("CPU_SCALE_IN_THRESHOLD", "30.0"))
@@ -1501,7 +1779,10 @@ def build_config(args, env):
         c1_ip=args.c1_ip, c1_user=args.c1_user, c1_password=c1_password,
         c2_ip=args.c2_ip, c2_user=args.c2_user, c2_password=_env(env, "CONNECTOR_2_SSH_PASSWORD", c1_password),
         esxi_host=args.esxi_host, esxi_user=args.esxi_user, esxi_password=_env(env, "ESXI_PASSWORD"),
-        c2_vmid=args.c2_vmid,
+        c2_vmid=args.c2_vmid, c2_power_backend=args.c2_power_backend,
+        vcenter_host=args.vcenter_host, vcenter_user=args.vcenter_user,
+        vcenter_password=_env(env, "VCENTER_PASSWORD"), vcenter_vm_name=args.vcenter_vm_name,
+        vcenter_ca_bundle=args.vcenter_ca_bundle, vcenter_api=args.vcenter_api, manual_state_port=args.manual_state_port,
         scale_out_pct=args.scale_out_pct, scale_in_pct=args.scale_in_pct, window_sec=args.window_sec,
         poll_sec=args.poll_sec, cpu_sample_sec=args.cpu_sample_sec, enable_scale_in=args.enable_scale_in,
         cooldown_sec=args.cooldown_sec, min_c2_uptime_sec=args.min_c2_uptime_sec,
@@ -1562,6 +1843,8 @@ def main(argv=None, environ=None):
     prefix = ("scaler_dryrun" if cfg.dry_run else "scaler") + "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
     recorder = CsvRecorder(cfg.output_dir, prefix)
     daemon = build_daemon(cfg, recorder=recorder)
+    if not cfg.dry_run:
+        daemon._event("C2_POWER_BACKEND", describe_power_control(cfg))
     if cfg.lab_insecure_ssh:
         daemon._event("LAB_INSECURE_SSH", "SSH host key verification disabled")
     if cfg.lab_insecure_tls:
@@ -1573,7 +1856,7 @@ def main(argv=None, environ=None):
 
     print(f"[*] Mode          : {'DRY-RUN (simulated, no SSH/HTTP)' if cfg.dry_run else 'LIVE'}")
     print(f"[*] Primary Node  : SR-CONN01 ({cfg.c1_ip or '-'})")
-    print(f"[*] Standby Node  : SR-CONN02 (VMID {cfg.c2_vmid} on {cfg.esxi_host or '-'})")
+    print(f"[*] Standby Node  : SR-CONN02 ({describe_power_control(cfg)})")
     print(f"[*] Scale-in      : {'enabled' if cfg.enable_scale_in else 'disabled'}")
     print(f"[*] Milestones    : {', '.join(n for n, on in daemon.configured_milestones().items() if on)}")
     print(f"[*] Logging to    : {', '.join(recorder.paths.values())}\n")

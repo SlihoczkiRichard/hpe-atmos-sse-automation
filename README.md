@@ -4,18 +4,20 @@ Measurement and automation tooling for a BSc thesis at the Budapest University o
 Economics (BME VIK) on HPE Aruba Networking SSE (Axis Atmos) connectors. The testbed is an HPE
 Aruba SSE Cloud Edge setup with two VMware ESXi hosts, one connector VM per host.
 
-> **Validation status (short):** all components have been developed and tested **offline only**
-> (unit and integration tests with simulated clocks, mocked SSH/HTTP/API and synthetic data). No
-> live ESXi, connector, SSE data-path or Admin API run has been performed yet. Figures produced
-> from dry-run data are watermarked **SIMULATED – NOT A REAL MEASUREMENT** and are not
-> experimental results. Details: [docs/validation-status.md](docs/validation-status.md).
+> **Validation status (short):** all components are covered by offline tests (simulated clocks,
+> mocked SSH/HTTP/API and synthetic data). Experiment 1 (`hey` load through the SSE path with C1 and
+> client `sar` telemetry, via `lab.py e1`) has run on the testbed: one connector peaks at about
+> 1400 concurrent clients (about 4000 successful responses/s) and collapses above it. ESXi/vCenter
+> power control, failover and the Admin API have not been run live yet. Figures produced from
+> dry-run data are watermarked **SIMULATED – NOT A REAL MEASUREMENT** and are not experimental
+> results. Details: [docs/validation-status.md](docs/validation-status.md).
 
 ## The four experiments
 
 | # | Question | Module |
 |---|---|---|
 | 1 | Capacity and load tolerance of access through a connector | `01-load-test/` |
-| 2 | CPU-threshold activation of a pre-configured secondary connector VM (power-on over ESXi SSH, no cloning) | `02-scaler-poc/` |
+| 2 | CPU-threshold activation of a pre-configured secondary connector VM (power-on over ESXi SSH, the vCenter API or by hand; no cloning) | `02-scaler-poc/` |
 | 3 | Availability and recovery during a manually injected connector failure | `03-failover/` |
 | 4 | URLhaus indicator synchronisation and the *perceived* SWG blocking delay, measured with an own, harmless canary host | `04-threat-intel/` |
 
@@ -32,6 +34,7 @@ hpe-atmos-sse-automation/
 ├── 03-failover/         TCP/HTTP/persistent availability probes, operator markers, analysis
 ├── 04-threat-intel/     URLhaus sync into a custom web category; canary blocking experiment
 ├── 05-results/          common result processing and figures (scan -> reviewed spec -> process)
+├── lab.py               optional menu / one-command runner over the scripts above
 ├── docs/                architecture, measurement guide, validation status
 ├── tests/               offline test suite (unittest; no network)
 ├── .env.example         configuration template (copy to .env; never commit .env)
@@ -83,6 +86,21 @@ the affected value.
 
 For live measurements follow [docs/measurement-guide.md](docs/measurement-guide.md), starting with
 the low-load, single-connector pilot.
+
+## Optional menu: `lab.py`
+
+The same procedures are also available from a menu on the load-generator host. It calls the scripts
+above with the same arguments and records every command, the code commit and the parameters in
+`lab_run.json` next to the results:
+
+```bash
+python3 lab.py               # menu: check, preflight, E1-E4, process results / regenerate figures, settings
+python3 lab.py e1            # E1 end to end: C1 telemetry over SSH, client sar, hey, exports, figures
+python3 lab.py e1 --dry-run  # offline practice (synthetic data, figures watermarked SIMULATED)
+```
+
+It needs key-based SSH to the connector VM (no passwords) and runs itself inside tmux. Details:
+[docs/measurement-guide.md](docs/measurement-guide.md#menu-driven-runs-optional-labpy).
 
 ## Documentation
 

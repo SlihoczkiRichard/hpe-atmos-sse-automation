@@ -161,16 +161,22 @@ class Processor:
 
     def fig_m1(self, by_kind):
         w, p = self.writer, self.plots
+        merged = self._capacity_hey_ids() if getattr(w, "thesis", False) else set()
         for did, ds in by_kind.get("hey", []):
             points = derive.hey_points(ds.data["runs"])
             levels = derive.hey_levels(ds.data["levels"], ds.data["manifest"])
             meta = derive.hey_meta(ds.data["manifest"])
-            p.m1_rps(w, f"m1_rps_vs_concurrency_{did}", points, levels, meta, ds.run_id)
             pct = {str(x) for x in meta["percentiles"]}
-            if {"95", "99"} <= pct:
-                p.m1_latency(w, f"m1_latency_p95_p99_{did}", points, levels, ds.run_id)
+            if did in merged:  # thesis: throughput and latency are part of load_capacity
+                for fig in ("m1_rps_vs_concurrency", "m1_latency_p95_p99"):
+                    w.omitted.append({"figure": w.neutral_id(f"{fig}_{did}"), "reason": "merged into load_capacity"})
             else:
-                w.skip(f"m1_latency_p95_p99_{did}", f"hey run did not record p95 and p99 (percentiles={sorted(pct)})")
+                p.m1_rps(w, f"m1_rps_vs_concurrency_{did}", points, levels, meta, ds.run_id)
+                if {"95", "99"} <= pct:
+                    p.m1_latency(w, f"m1_latency_p95_p99_{did}", points, levels, ds.run_id)
+                else:
+                    w.skip(f"m1_latency_p95_p99_{did}",
+                           f"hey run did not record p95 and p99 (percentiles={sorted(pct)})")
             p.m1_errors(w, f"m1_error_rate_vs_concurrency_{did}", points, meta, ds.run_id)
         self.fig_m1_resources()
         k6 = [r for _, ds in by_kind.get("k6_summary", []) for r in derive.k6_rows(ds.data["summary"])]
@@ -201,6 +207,16 @@ class Processor:
                          "percentiles computed from the raw samples"])
         for did, ds in by_kind.get("iperf3", []):
             p.m1_iperf3(w, f"m1_iperf3_{did}", derive.iperf3_rows(ds.data["runs"]), ds.run_id)
+
+    def _capacity_hey_ids(self):
+        """hey datasets that a complete m1_resources group pairs with CPU data (thesis: one merged figure)."""
+        ids = set()
+        for g in (self.spec.get("groups") or {}).get("m1_resources") or []:
+            hey, cpu = self.datasets.get(g.get("hey")), self.datasets.get(g.get("sar_cpu"))
+            if hey is not None and hey.kind == "hey" and cpu is not None and cpu.kind == "sar_cpu" \
+                    and "warmup_sec" in g and cpu.data.get("rows"):
+                ids.add(g.get("hey"))
+        return ids
 
     def fig_m1_resources(self):
         w, p = self.writer, self.plots
@@ -239,7 +255,15 @@ class Processor:
                      f"status: {derive.RESOURCE_STATUS_RULE}; min_coverage={min_cov:g}; n = used/total runs",
                      "load and resource use in the same window; correlation only, no bottleneck is inferred",
                      note]
-            p.m1_resources(w, fid, levels, runs, notes, f"{hey.run_id} / {cpu.data['host']}")
+            if getattr(w, "thesis", False):
+                rows = derive.capacity_rows(derive.hey_levels(hey.data["levels"], hey.data["manifest"]), levels)
+                summary = derive.capacity_summary(rows)
+                p.m1_capacity(w, f"m1_capacity_{i}", derive.hey_points(hey.data["runs"]), rows, summary,
+                              ["hey latency covers every HTTP response (any status), transport errors excluded",
+                               "cpu_not_idle_pct = 100 - %idle"] + [n for n in notes if n])
+                w.table(f"m1_capacity_table_{i}", rows, [summary["rule"], summary["statement"]])
+            else:
+                p.m1_resources(w, fid, levels, runs, notes, f"{hey.run_id} / {cpu.data['host']}")
             w.table(f"m1_resources_by_run_{i}", runs, notes)
 
     def fig_m2(self, by_kind):

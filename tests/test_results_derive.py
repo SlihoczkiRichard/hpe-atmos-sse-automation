@@ -229,5 +229,54 @@ class ResourceWindowTests(OfflineTestCase):
         self.assertEqual(rows[0]["mem_status"], "not_provided")
         self.assertEqual(d.resources_by_level(rows)[0]["mem_runs_not_provided"], 1)
 
+class CapacityTests(OfflineTestCase):
+    @staticmethod
+    def level(c, rps, status="accepted"):
+        return {"concurrency": c, "status": status, "successful_rps_median": rps,
+                "lat_all_responses_p95_ms_median": 200.0 + c / 10, "lat_all_responses_p99_ms_median": 400.0,
+                "primary_error_rate_pooled": 0.0}
+
+    def test_e1_20261103_was_not_saturated(self):
+        # medians of the real E1-20261103-01 run (levels.csv), CPU medians rounded
+        data = ((800, 2853.3, 81.4), (1000, 3202.1, 83.2))
+        rows = d.capacity_rows([self.level(c, r) for c, r, _ in data],
+                               [{"concurrency": c, "cpu_not_idle_pct_mean_median": u} for c, _, u in data])
+        self.assertAlmostEqual(rows[0]["elasticity_to_next"], (3202.1 / 2853.3 - 1) / 0.25, places=6)
+        self.assertFalse(any(r["capacity_limit"] for r in rows))
+        summary = d.capacity_summary(rows)
+        self.assertFalse(summary["capacity_limit_found"])
+        self.assertIn("above the tested range", summary["statement"])
+
+    def test_plateau_marks_the_last_scaling_level(self):
+        rows = d.capacity_rows([self.level(1000, 3200), self.level(1500, 4400), self.level(2000, 4500),
+                                self.level(3000, 4450)], [{"concurrency": 1500, "cpu_not_idle_pct_mean_median": 97.0}])
+        self.assertEqual([r["capacity_limit"] for r in rows], [False, True, False, False])
+        summary = d.capacity_summary(rows)
+        self.assertEqual((summary["concurrency"], summary["cpu_not_idle_pct_mean_median"]), (1500, 97.0))
+        self.assertIn("not a proof", summary["statement"])
+
+    def test_rejected_next_level_is_a_limit(self):
+        rows = d.capacity_rows([self.level(1000, 3200), self.level(2000, 6300, status="rejected")], [])
+        self.assertTrue(rows[0]["capacity_limit"])
+        self.assertTrue(math.isnan(rows[0]["cpu_not_idle_pct_mean_median"]))
+
+    def test_rejected_first_level_gives_no_limit(self):
+        rows = d.capacity_rows([self.level(1000, 100, status="rejected"), self.level(2000, 200)], [])
+        self.assertFalse(d.capacity_summary(rows)["capacity_limit_found"])
+
+
+    def test_e1_20261106_t2_peak_at_1400(self):
+        # medians of the real E1-20261106-T2 run (levels.csv)
+        data = ((1000, 3102.525), (1200, 3608.059), (1400, 4033.665), (1500, 3288.502), (1600, 2638.068),
+                (1800, 2148.001), (2000, 1726.967))
+        rows = d.capacity_rows([self.level(c, r) for c, r in data], [])
+        self.assertEqual([r["concurrency"] for r in rows if r["capacity_limit"]], [1400])
+
+    def test_level_keeps_pooled_error_rate(self):
+        lv = d.hey_levels([{"concurrency": "4000", "status": "rejected", "successful_rps_median": "661",
+                            "primary_error_rate_pooled": "0.036"}], {})
+        self.assertAlmostEqual(lv[0]["primary_error_rate_pooled"], 0.036)
+
+
 if __name__ == "__main__":
     unittest.main()
