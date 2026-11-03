@@ -21,12 +21,17 @@ results.
   - 04: URLhaus parsing and selection, Swagger contract of the used operations, writable-field payloads, paging checks, uncertain-write reconciliation, restore conflict, canary sequence, signed latency offsets, probes continuing during API calls (real thread, simulated components); canary snapshot saved and closed before the first write, snapshot failure preventing the write, restore from the saved snapshot after an exception or interruption, structured redacted worker errors (inline and threaded worker) kept apart from API outcomes and the restore result, incomplete finalisation.
   - 05: sadf CPU and memory and k6-raw adapters (incl. duplicates, overlaps, stage tags), resource windows per hey run (interval containment, warm-up, coverage bounded by 100 %, partial windows kept out of level medians), k6 stage figure (constant-VU holds only), figure computations, provenance rules, issue severities, no overwriting, untouched inputs.
 - **Dry-runs:** every module's dry-run, and a full simulated processing run producing figures for all four experiments.
+- **`lab.py`:** `tests/test_lab.py` (plan arithmetic, remote command construction, time-sync parsing, spec building, the E1 call sequence against a fake shell); `lab.py e1 --dry-run` and `lab.py e3 --dry-run` end to end; one E3 repetition against a local HTTP server with markers typed during the run; the remote telemetry start/export commands executed in bash with stand-in `sar`/`sadf`. `lab.py e1` has run against the testbed (see below).
+
+## Live checks performed
+
+- **Experiment 1 (`hey`, closed loop, through the SSE path):** `lab.py e1` end to end on the testbed: C1 `sar` telemetry over SSH, client `sar`, the stepped `hey` run, exports, time-sync records and processing with the `load_capacity` figure. Runs: E1-20261103-01 (`10..1000`, no saturation), E1-20261106-T1 (`1000..6000`, range finding), E1-20261106-01 (`400,800,1000,1200,2000,4000`, limit at c = 1200, 3650 1/s), E1-20261106-T2 (`1000..2000`, peak at c = 1400, 4034 1/s, consistent across three sweeps). The real `hey` report format, `sadf -d -- -u ALL` / `-r` exports and the pre-run target check (HTTP 200 required; a stopped backend gave 100 % HTTP 502) are confirmed by these runs. The capacity run is repeated with `400,1000,1400,1600,2000,4000`.
 
 ## Live checks not yet performed
 
 - **Preflight:** `00-preflight --run` against the testbed.
 - **Experiment 1:**
-  - real `hey` and `k6` runs through the SSE path;
+  - real `k6` runs through the SSE path (`hey` has run, see above);
   - real report formats of the installed versions;
   - `hey -disable-redirects` availability;
   - k6 behaviour of `http_reqs` / `http_req_failed` with redirects;
@@ -41,7 +46,9 @@ results.
   - that the tagged stage submetrics appear in `handleSummary` through the selector thresholds;
   - that `testRunDurationMs` and the stage timeline agree well enough for the completeness tolerance.
 - **Experiment 2:**
-  - real `vim-cmd` timing and power-state updates;
+  - real `vim-cmd` timing and power-state updates (`esxi-ssh`), or the vCenter REST login, VM lookup,
+    `start` call and power-state updates on the testbed's vCenter version (`vcenter-api`; tested offline
+    against a fake vCenter only, both the 7.0+ `/api` and the 6.x `/rest` dialect);
   - SSH host keys;
   - `/proc/stat` behaviour of the connector kernel (iowait/idle accounting);
   - the meaning of steal under ESXi;
@@ -71,7 +78,7 @@ results.
   - synchronised VM clocks if telemetry coverage is to be judged.
 - Experiment 2: the secondary connector VM pre-configured on its ESXi host (it is powered on, not cloned).
 - Experiment 3:
-  - a static HTTP endpoint with a unique token, an expected status, no redirect and `Content-Length`;
+  - a static HTTP endpoint with a unique token, an expected status, no redirect and `Content-Length` or chunked encoding;
   - known backend keep-alive timeout and request limit;
   - a TLS chain trusted by the client;
   - evidence that the probes use the SSE path;

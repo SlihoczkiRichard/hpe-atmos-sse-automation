@@ -23,7 +23,7 @@ combined in `05-results` on UTC, with an operator time-sync statement.
 1. `cp .env.example .env` and fill in every value that the experiment uses. `--help` and
    `--dry-run` never read `.env`; a live mode reports an unusable value (for example a non-numeric
    `CONNECTOR_2_VMID`) when it parses that value, and does not start.
-2. Secrets (`CONNECTOR_SSH_PASSWORD`, `CONNECTOR_2_SSH_PASSWORD`, `ESXI_PASSWORD`, `ATMOS_API_KEY`)
+2. Secrets (`CONNECTOR_SSH_PASSWORD`, `CONNECTOR_2_SSH_PASSWORD`, `ESXI_PASSWORD`, `VCENTER_PASSWORD`, `ATMOS_API_KEY`)
    are read from the environment only.
 3. Start the Python tools from the repository root; they load `.env` from there.
 4. Choose a `RUN_ID` per measurement run (letters, digits, `.`, `_`, `-`; at most 80 characters),
@@ -36,6 +36,76 @@ combined in `05-results` on UTC, with an operator time-sync statement.
    `.attemptN` or `.revN`.
 6. Default output directories: `<module>/results/` (excluded by `.gitignore`); `05-results` writes
    to `05-results/processed/`.
+
+## Menu-driven runs (optional): `lab.py`
+
+`lab.py` in the repository root is a convenience layer over the commands in this guide. It calls
+the same scripts with the same arguments, in the same order, and produces the same files; the
+manual procedure in the rest of this guide stays valid and is exactly what `lab.py` automates. Use
+whichever you prefer; results of both are processed the same way.
+
+```bash
+python3 lab.py            # menu
+python3 lab.py check      # tools, .env, SSH key login to C1 (read only)
+python3 lab.py e1         # E1 end to end, figures included
+python3 lab.py e1 --dry-run   # offline practice: synthetic hey output, figures watermarked SIMULATED
+```
+
+Requirements in addition to the manual procedure:
+
+- Run it on the load-generator host. It restarts itself inside tmux (session `lab`) if it is not
+  already in one, so a dropped SSH/VPN session does not stop a run (reattach: `tmux attach -t lab`),
+  and it uses `.venv/bin/python` when that exists.
+- Key-based SSH from that host to C1 (`ssh-copy-id <CONNECTOR_SSH_USER>@<CONNECTOR_1_IP>` once),
+  with C1's host key already in `known_hosts` (or `SSH_KNOWN_HOSTS`). `lab.py` uses the system
+  `ssh`/`scp` with `BatchMode=yes` and `StrictHostKeyChecking=yes`; it never asks for or stores a
+  password.
+- `sysstat` (`sar`, `sadf`) on the client and on C1; `setsid` on C1 (util-linux).
+- Optional keys in `.env`: `LAB_REMOTE_DIR`, `LAB_LEAD_SEC`, `LAB_TELEMETRY_SEC`, `LAB_COPY_DEST`
+  and, for E2, `E2_*` (see `.env.example`).
+- Parameters: menu item **Settings** (`python3 lab.py settings`) shows and changes the non-secret
+  `.env` keys of the experiments, with the same checks the tools apply (steps, durations, numbers).
+  It writes `.env` with mode 0600 and keeps the previous version as `.env.bak`. Passwords, the API key
+  and tokens are never shown or changed there; edit those in `.env` by hand. Every run records the
+  values it used in `lab_run.json`.
+
+What `lab.py e1` does (the manual equivalent is in the E1 and telemetry sections below):
+
+1. Checks the tools, the SSH login and that the `RUN_ID` is unused (default suggestion:
+   `E1-<UTC date>-NN`), shows the plan and the code commit (uncommitted changes are listed), and asks
+   for confirmation.
+2. Copies `collect_connector_telemetry.sh` to `~/<LAB_REMOTE_DIR>` on C1, verifies its sha256
+   against the repository copy and starts it detached (`setsid nohup`) with `RUN_START_EPOCH` taken
+   on C1. Length: lead time + 1.1 x the planned load time + 180 s, rounded up to 5 min (1800 s for
+   the E1 plan), unless `LAB_TELEMETRY_SEC` is set.
+3. Starts `sar -u 1 <same length> -o results/<RUN_ID>/client_sar/client.sa` on the client.
+4. Waits `LAB_LEAD_SEC` (default 60 s idle baseline), raises the open-file limit to 8192 (warns if
+   the hard limit is lower) and runs `run_hey_stepped.py` with explicit `--steps --sweeps --duration
+   --cooldown --qps` from `.env`.
+5. Waits for the telemetry to end, runs the `sadf` exports on C1 (`-u ALL`, `-r`, `sadf -V`), copies
+   all `telemetry_<RUN_ID>_*` files to `results/<RUN_ID>/telemetry/` and exports the client CPU to
+   `client_sar/client_cpu.csv`.
+6. Reads `timedatectl` on both hosts. If both are NTP-synchronised it writes the `time_sync`
+   statement (servers and offsets as the source); otherwise there is none and the cross-host
+   figures are skipped.
+7. Writes `results/<RUN_ID>/lab_run.json`: git commit and uncommitted changes, parameters, exact
+   command lines, telemetry script hash, coverage, time-sync readings, timings.
+8. Processing: `scan` -> reviewed spec (provenance from the tool metadata, the `m1_resources` group,
+   `time_sync`), which is printed for the operator review and needs a yes -> `process` -> one
+   `tar.gz` bundle with its sha256 and the `scp` command to copy it to your computer. Specs are kept
+   in `05-results/specs/` (not committed).
+
+Ctrl+C during the load stops hey the usual way (partial results kept, run marked interrupted);
+`lab.py` then asks whether to stop the telemetry. Nothing is overwritten: a used `RUN_ID` is
+refused, and processing the same spec again writes a new `.attemptN` folder.
+
+Other menu items: **E2** (live scaler + load + C1 telemetry; needs `E2_CONCURRENCY_STEPS`, a
+methodology decision, and shows a scaler dry run first), **E3** (one repetition: starts the three
+probes, prints their status every 5 s, writes the markers when you type `f` / `c` / `n TEXT`, each
+immediately BEFORE the Save in the Host Client, then runs `analyze`), **E4** (`plan`,
+`validate-signature`, `canary`, `restore`; anything that writes asks first), **Process results**
+(any `RUN_ID`s, or `lab.py figures --spec <reviewed spec>` to regenerate figures), and the read-only
+**preflight**.
 
 ## Experiment 1 – capacity and load tolerance
 
@@ -56,26 +126,50 @@ python 01-load-test/run_hey_stepped.py --run-id E1-20261101-01 \
 
 ### E1 capacity run (client)
 
-The capacity run covers the whole range in one run, so that one table and one curve describe it:
+The capacity run covers the whole range in one run, so that one table and one curve describe it,
+and it has to go **beyond** the connector's limit, otherwise no capacity conclusion can be drawn.
+The first run (E1-20261103-01, `10..1000`, 30 s) did not saturate: at c = 1000 the throughput was
+still rising (2853 -> 3202 1/s from c = 800) and C1 CPU was 83 %. A range-finding run
+(E1-20261106-T1, `1000..6000`, one 30 s sweep) then located the limit: throughput peaked at
+c = 1000 (3540 1/s), collapsed above it (3042, 1777, 862 1/s at 1500, 2000, 3000) and the error rate
+passed 1 % from c = 4000 (2.6 %, 9.4 %, 19.4 %). A first six-level run (E1-20261106-01,
+`400,800,1000,1200,2000,4000`) put the limit at c = 1200 (3650 1/s), but the gap up to 2000 was too
+wide to place the peak. A second range-finding run (E1-20261106-T2, `1000,1200,1400,1500,1600,1800,2000`,
+three 60 s sweeps) placed it at c = 1400 (4034 1/s, all three sweeps 3823-4116 1/s); from c = 1500 the
+throughput falls in every sweep (3289, 2638, 2148, 1727 1/s up to c = 2000) with errors below 0.13 %,
+while c = 1200 and c = 2000 repeated the first run within 2 % and 8 %. Low levels add no information,
+so the capacity run uses six levels around these points (ramp-up, peak, collapse, failing range;
+about 20 minutes):
 
 ```bash
 ulimit -n 8192 && ulimit -n      # hey opens about c connections; the default 1024 fails at c = 1000
 python 01-load-test/run_hey_stepped.py --run-id E1-<date>-01 \
-    --steps 10,25,50,100,150,200,300,400,500,600,700,800,1000 \
-    --sweeps 3 --duration 30s --cooldown 5 --qps 0
+    --steps 400,1000,1400,1600,2000,4000 \
+    --sweeps 3 --duration 60s --cooldown 5 --qps 0
 ```
 
-These are the `.env.example` defaults (`LOAD_CONCURRENCY_STEPS`, `LOAD_SWEEPS`, ...); the explicit
-flags make the command self-describing. The manifest records the levels actually used.
+These are the `.env.example` values (`LOAD_CONCURRENCY_STEPS`, `LOAD_SWEEPS`, ...; `lab.py e1` uses
+them from `.env` and sizes the telemetry, 1800 s, itself); the explicit flags make the command
+self-describing. The manifest records the levels actually used.
 
-- **Capacity limit (defined before the run):** the lowest level that is not accepted (a run with a
-  primary error rate of at least `ACCEPT_MAX_ERROR_RATE`, or an invalid run), or, without such a
-  level, the level from which the successful RPS stops increasing with `c`. If neither occurs, the
-  result is "no saturation up to the highest tested level", not a capacity value. Connector CPU is
+- **Capacity limit (defined before the run, computed by `05-results`):** the highest accepted level
+  after which throughput stops scaling: the next level is not accepted (a run with a primary error
+  rate of at least `ACCEPT_MAX_ERROR_RATE`, or an invalid run), or the next level's median
+  throughput grows by less than 0.25 x the relative increase of `c` (closed-loop load: an
+  unsaturated path grows proportionally; E1-20261103-01 stayed at 0.46-2.0 up to c = 1000). If
+  neither occurs, the result is "no saturation up to the highest tested level", not a capacity
+  value. The publication figure `load_capacity` (colour) shows the median throughput per level as bars
+  (green up to the limit, orange hatched for accepted overload levels, red cross-hatched for levels
+  that fail acceptance, with each run as a dot) above p95/p99 latency (log scale) and C1 CPU on the
+  same categorical concurrency axis, with the limit marked; `load_capacity.csv` next to it holds the values per level
+  and the manifest the limit statement.
+- **Which component limits:** if throughput stops scaling while C1 CPU stays well below 90 % and
+  the client CPU has headroom, the limit is outside the connector (SSE edge, WAN, backend); this is
+  a valid result too, stated as such. Connector CPU is
   reported as the run-window mean; 1 s percentiles are noisy on the connector VM and are not used as
   the limit.
 - **Order and telemetry:** start the connector telemetry first (`collect_connector_telemetry.sh 1800
-  1 ...`; about 23 minutes of load plus idle time before and after), then hey about one minute
+  1 ...`; about 20 minutes of load plus idle time before and after), then hey about one minute
   later. Run hey in `tmux` (or `screen`) so that a dropped SSH session does not interrupt it.
 - **Client headroom (required):** record the client CPU for the same window, for example
   `sar -u 1 1800 -o ~/client_sar_<RUN_ID>.sa > /dev/null`, and keep its export out of the files that
@@ -193,7 +287,29 @@ python 02-scaler-poc/scaler_daemon.py --scale-out-pct 80 --window-sec 15 --poll-
     --power-on-timeout-sec 60 --cooldown-sec 60
 ```
 
-- **Side effect:** the live mode **powers on the C2 VM** on the ESXi host when C1's CPU stays at or above the threshold for the trigger window. There is no observe-only mode.
+- **Side effect:** the live mode **powers on the C2 VM** when C1's CPU stays at or above the threshold for the trigger window. There is no observe-only mode.
+- **Power-on backend (`C2_POWER_BACKEND`):**
+
+  | Value | How C2 is powered on | Power state from | Needs |
+  |---|---|---|---|
+  | `esxi-ssh` (default) | `vim-cmd vmsvc/power.on` over SSH | ESXi | SSH enabled on the host, `ESXI_*`, `CONNECTOR_2_VMID` |
+  | `vcenter-api` | vCenter REST `power?action=start` (7.0+) or `power/start` (6.x) | vCenter | `VCENTER_*`, a least-privilege user |
+  | `manual` | the operator presses Power On when the console beeps and shows `MANUAL ACTION` | TCP connect to `CONNECTOR_2_IP:MANUAL_STATE_PORT` (proxy) | `CONNECTOR_2_IP`; no scale-in |
+
+  On a shared host use `vcenter-api`. One-time setup by a vCenter administrator:
+  1. Administration > Access Control > Roles: new role (e.g. `SSE-Thesis-PowerOnly`) with only
+     *Virtual machine > Interaction > Power on* and *Power off*.
+  2. Single Sign On > Users and Groups: user `sse-scaler@vsphere.local`.
+  3. On the **SR-CONN02 VM only**: Permissions > Add, that user, that role, *Propagate to children* off.
+  4. Download the vCenter root CA (`https://<vcenter>/certs/download.zip`) to the control host and set
+     `VCENTER_CA_BUNDLE`. TLS verification cannot be switched off for vCenter.
+  5. `python 00-preflight/preflight_check.py --run` logs in, finds the VM by `VCENTER_VM_NAME` (exactly
+     one match is required) and reads its power state. It never powers it on, so the *Power on*
+     privilege is first exercised by the live run (an HTTP 403 there is logged as `POWER_ON_FAILED`).
+
+  With `manual` every offset after `POWER_ON_SENT` includes the operator's reaction time, and
+  `VM_POWERED_ON` means "guest TCP port answers", which is later than the hypervisor power-on.
+  Report these runs separately from automated ones.
 - **Further checks:** `--target-url`, `--c2-connector-id` (with `ATMOS_API_KEY`) and `--c2-connection-check ss-established` add readiness checks. Each check is reported with its own status.
 - **Scale-in:** `--enable-scale-in` enables ACPI shutdown. Only a C2 whose power-on the scaler confirmed is shut down, unless `--allow-scale-in-manual-c2` is given. `--allow-force-power-off` enables a hard power-off.
 - **Lab flags:** `--lab-insecure-ssh` and `--lab-insecure-tls` weaken verification and are logged.
@@ -226,7 +342,9 @@ python 03-failover/failover_probe.py analyze --run-id E3-20261101-01 --probe per
 
 - **Defaults:** 50 ms target interval (not a guaranteed resolution), TCP timeout 250 ms, HTTP timeout 1000 ms, N = 10 successes for stable recovery, 30 s baseline.
 - **HTTP probe:** it needs a content check (`--expect-body` and/or `--expect-regex`).
-- **Persistent probe:** the endpoint must send `Content-Length`.
+- **Persistent probe:** the response must carry `Content-Length` or use chunked transfer encoding (the
+  SSE edge re-encodes the backend's `Content-Length` response as chunked); either way the body must fit
+  `FAILOVER_HTTP_MAX_BODY_BYTES` and the connection must stay open (no `Connection: close`).
 - **Marker:** it is an operator signal, not proof of the failure time.
 
 ## Experiment 4 – threat intelligence and perceived blocking delay
@@ -309,7 +427,8 @@ python 05-results/process_results.py process --spec spec_reviewed.json
 
 Figure style: by default the figures are written for the thesis: no title, footer, date, time of
 day or run id; only the essential figures of each experiment, with descriptive file names
-(`load_throughput`, `load_latency`, `load_resources`, `load_cpu_timeline`, `scaling_*`,
+(`load_capacity` when a hey run is paired with C1 CPU, otherwise `load_throughput` and
+`load_latency`; `load_cpu_timeline`, `scaling_*`,
 `failover_*`, `threat_*`). Captions belong in LaTeX. `--diagnostic` writes the full internal
 figure set (titles, run ids, UTC axes, provenance footers) for checking. The manifest and the CSVs
 keep the real run ids in both styles.

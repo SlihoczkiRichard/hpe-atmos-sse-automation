@@ -290,11 +290,15 @@ class ThesisModeProcessTests(OfflineTestCase):
         self.assertEqual(m["figures_skipped"], [])
         # curated set: one figure kind per essential result, descriptive names and titles
         names = {f["figure"] for f in m["figures"]}
-        for expected in ("load_throughput", "load_latency", "load_resources", "load_k6_stages", "load_iperf3",
+        for expected in ("load_capacity", "load_k6_stages", "load_iperf3",
                          "scaling_cpu_timeline", "scaling_cpu_events", "scaling_app_performance",
                          "failover_probes", "threat_canary", "threat_blocking_delay"):
             self.assertIn(expected, names)
         self.assertLess(len(m["figures"]), len(std["figures"]))
+        # throughput, latency and CPU of a hey run paired with CPU data: one merged figure
+        self.assertFalse(names & {"load_throughput", "load_latency", "load_resources"})
+        merged = [o for o in m["figures_omitted"] if o["reason"] == "merged into load_capacity"]
+        self.assertTrue(any(o["figure"].startswith("m1_rps_vs_concurrency") for o in merged))
         omitted = {o["figure"] for o in m["figures_omitted"]}
         self.assertTrue(any(o.startswith("m1_error_rate") for o in omitted))
         self.assertTrue(any(o.startswith("m4_feed_sync_summary") for o in omitted))

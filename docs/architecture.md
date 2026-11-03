@@ -89,7 +89,7 @@ Common conventions:
 - SSH connections:
   - C1 guest: CPU samples via `/proc/stat`;
   - C2 guest: CPU samples, guest reachability and the optional `ss` connection check;
-  - ESXi host: `vim-cmd vmsvc/power.getstate | power.on | power.shutdown | power.off`.
+  - C2 power control, selected by `C2_POWER_BACKEND`: ESXi host `vim-cmd vmsvc/power.getstate | power.on | power.shutdown | power.off` (`esxi-ssh`, class `ESXiHost`); vCenter REST session, VM lookup by name, power state, `start`, guest `shutdown`, `stop` (`vcenter-api`, class `VCenterVM`); console prompt plus a TCP connect to the C2 guest as state proxy (`manual`, class `ManualPowerControl`).
 - Other network: Admin API GET `/Connectors/{id}/status` and an HTTP GET to the target, both optional.
 - Side effects on the testbed:
   - **power-on of the C2 VM** when the CPU threshold is held;
@@ -152,6 +152,15 @@ Common conventions:
 - Inputs: only the files listed in the spec. Nothing is modified.
 - Output: `05-results/processed/<processing_id>[.attemptN]/` with figures, CSV files and `processing_manifest.json`.
 - No network, SSH or API access.
+
+## lab.py (optional menu)
+
+| File | Role |
+|---|---|
+| `lab.py` | **Entry point, optional.** Menu and one-command runners (`check`, `preflight`, `e1`–`e4`, `process`, `figures`) on the load-generator host. Calls the entry points above as subprocesses with explicit arguments; reaches C1 with the system `ssh`/`scp` (key login, `BatchMode`, `StrictHostKeyChecking=yes`). It adds no measurement or evaluation logic. |
+
+- Writes: `lab_run.json` next to each run's results (commit, parameters, command lines, telemetry script hash, time-sync readings, timings); `05-results/specs/` (spec draft and reviewed spec); a `tar.gz` bundle with sha256 next to each processed folder; on C1, `~/<LAB_REMOTE_DIR>/` (telemetry script and data).
+- The manual procedure in the measurement guide produces the same measurement files.
 
 ## tests/
 

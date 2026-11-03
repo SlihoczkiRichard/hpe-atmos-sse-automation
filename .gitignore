@@ -22,5 +22,6 @@ test_run*.txt
 # Generated measurement output
 **/results/
 05-results/processed/
+05-results/specs/
 connector_telemetry_*.txt
 connector_telemetry_*.sa

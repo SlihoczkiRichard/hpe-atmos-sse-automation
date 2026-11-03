@@ -27,8 +27,10 @@ clock domain and the same RUN_ID.
 
 Persistent probe: the connection is opened once; http.client's automatic reconnect is disabled
 (auto_open = 0) and connect() is guarded so that a second connect() raises. Each response must
-announce a Content-Length within the body limit and is read completely before the next request;
-otherwise the exchange fails and the probe ends (no unread data stays on the connection). A
+announce a Content-Length within the body limit, or use chunked transfer encoding (an SSE edge may
+re-encode the backend's Content-Length response) with a body within the limit, and is read
+completely, including the terminating chunk, before the next request; otherwise the exchange fails
+and the probe ends (no unread data stays on the connection). A
 "Connection: close" response is logged as server_connection_close; EOF or reset are logged as
 such, with the cause left unknown.
 
@@ -309,7 +311,9 @@ class PersistentHttpProbe:
             return self._end(ProbeResult(False, classify_error(exc), _detail(exc)))
         length = resp.getheader("Content-Length")
         chunked = "chunked" in (resp.getheader("Transfer-Encoding") or "").lower()
-        if chunked or length is None or not length.strip().isdigit():
+        if chunked:
+            return self._finish(resp, *self._read_chunked(resp))
+        if length is None or not length.strip().isdigit():
             return self._end(ProbeResult(False, "body_length_unknown",
                                          "no usable Content-Length; response cannot be read safely", resp.status))
         if int(length) > self.check.max_body_bytes:
@@ -322,6 +326,25 @@ class PersistentHttpProbe:
             return self._end(ProbeResult(False, classify_error(exc), _detail(exc), resp.status))
         if len(body) != int(length) or not resp.isclosed():
             return self._end(ProbeResult(False, "eof", f"read {len(body)} of {length} body bytes", resp.status))
+        return self._finish(resp, body, None)
+
+    def _read_chunked(self, resp):
+        """Reads a chunked body of at most max_body_bytes, including the terminating chunk.
+        Returns (body, failure ProbeResult or None)."""
+        limit = self.check.max_body_bytes
+        try:
+            body = resp.read(limit + 1)
+        except Exception as exc:
+            return b"", ProbeResult(False, classify_error(exc), _detail(exc), resp.status)
+        if len(body) > limit:
+            return body, ProbeResult(False, "body_too_large", f"chunked body exceeds {limit} bytes", resp.status)
+        if not resp.isclosed():
+            return body, ProbeResult(False, "eof", "chunked body did not end within the limit", resp.status)
+        return body, None
+
+    def _finish(self, resp, body, failure):
+        if failure is not None:
+            return self._end(failure)
         result = self.check.evaluate(resp.status, body)
         if resp.will_close:
             # the server announced the end of the connection (Connection: close / HTTP/1.0)

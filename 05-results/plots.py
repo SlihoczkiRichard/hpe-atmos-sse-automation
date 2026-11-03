@@ -30,6 +30,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt          # noqa: E402
 import matplotlib.dates as mdates        # noqa: E402
+import matplotlib.ticker as mticker      # noqa: E402
 from matplotlib.text import Text         # noqa: E402
 
 WATERMARKS = {"simulated": "SIMULATED – NOT A REAL MEASUREMENT",
@@ -49,6 +50,7 @@ THESIS_FIGURES = (
     ("m1_rps_vs_concurrency", "load", "load_throughput", "successful throughput vs. concurrency"),
     ("m1_latency_p95_p99", "load", "load_latency", "p95 and p99 latency vs. concurrency"),
     ("m1_resources_vs_concurrency", "load", "load_resources", "connector CPU and memory vs. concurrency"),
+    ("m1_capacity", "load", "load_capacity", "throughput, latency and connector CPU vs. concurrency"),
     ("m1_k6_stages_", "load", "load_k6_stages", "k6 constant-VU stages"),
     ("m1_iperf3", "load", "load_iperf3", "TCP throughput (iperf3)"),
     ("m2_sar_cpu", None, "cpu_timeline", "connector CPU over time (1 s samples)"),
@@ -317,7 +319,8 @@ def _thesis_m1_latency(w, fid, points, levels, notes):
     ax.set(xlabel=CONCURRENCY_LABEL, ylabel="latency [ms]")
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
-    ax.legend(fontsize=8, loc="upper left", ncol=2)
+    # Below the axes: inside the plot the legend can hide outliers (e.g. a high p99 at low concurrency).
+    ax.legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=4, frameon=False)
     w.save(fig, fid, points, notes)
 
 
@@ -340,6 +343,87 @@ def _thesis_m1_resources(w, fid, levels, run_rows, footnotes):
     ax2.set_xlim(left=0)
     ax2.legend(fontsize=8, loc="upper left")
     w.save(fig, fid, levels, footnotes)
+
+
+CAP_COLORS = {"scaling": "#2e7d32", "overload": "#ef6c00", "failed": "#c62828"}
+CAP_HATCH = {"scaling": "", "overload": "//", "failed": "xx"}
+CAP_LAT, CAP_CPU = "#7b1fa2", "#00897b"
+
+
+def _capacity_zone(r, limit):
+    if r["status"] != "accepted":
+        return "failed"
+    return "overload" if limit is not None and r["concurrency"] > limit else "scaling"
+
+
+def m1_capacity(w, fid, points, rows, summary, notes):
+    """One colour figure for the capacity question. Top: median throughput per level as bars, green while
+    the path scales (up to the capacity limit, derive.capacity_rows), orange for accepted overload levels,
+    red for levels that fail the acceptance rule (hatched as well, so a grey print keeps the zones), with
+    every run as a dot. Bottom: p95/p99 latency (log scale) and connector CPU on a twin axis. The levels
+    sit on a categorical axis, so a sparse high range does not leave empty space."""
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    limit = summary["concurrency"] if summary.get("capacity_limit_found") else None
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.0, 6.2), sharex=True, gridspec_kw={"height_ratios": [1.25, 1]})
+    x = list(range(len(rows)))
+    zones = [_capacity_zone(r, limit) for r in rows]
+    meds = [0 if _isnan(r["successful_rps_median"]) else r["successful_rps_median"] for r in rows]
+    ax1.bar(x, meds, width=0.62, zorder=2, color=[CAP_COLORS[z] for z in zones],
+            hatch=[CAP_HATCH[z] for z in zones], edgecolor="white", linewidth=0)
+    top = max(meds + [1])
+    for i, r in enumerate(rows):
+        ps = [p["successful_rps"] for p in points if p["concurrency"] == r["concurrency"]
+              and not _isnan(p["successful_rps"])]
+        ax1.plot([i] * len(ps), ps, "o", ms=3.5, color="k", alpha=0.55, zorder=3)
+        top = max([top] + ps)
+        txt = f"{meds[i]:.0f}"
+        if zones[i] == "failed" and not _isnan(r["primary_error_rate_pooled"]):
+            txt += f"\n{r['primary_error_rate_pooled']:.1%} errors"
+        ax1.annotate(txt, (i, max(ps + [meds[i]])), xytext=(0, 4), textcoords="offset points", ha="center",
+                     va="bottom", fontsize=8)
+    ax1.set_ylabel("successful responses [1/s]")
+    ax1.set_ylim(0, top * 1.4)
+    ax1.grid(axis="y", alpha=0.3, zorder=0)
+    used = [z for z in ("scaling", "overload", "failed") if z in zones]
+    names = {"scaling": "scaling (up to the capacity limit)" if limit is not None else "accepted",
+             "overload": "overload (accepted, < 1 % errors)", "failed": "not accepted (≥ 1 % errors)"}
+    handles = [Patch(facecolor=CAP_COLORS[z], hatch=CAP_HATCH[z], edgecolor="white", label=names[z]) for z in used]
+    handles.append(Line2D([], [], marker="o", ls="", color="k", alpha=0.55, ms=3.5, label="single run"))
+    ax1.legend(handles=handles, fontsize=7.5, loc="upper left", ncol=2, frameon=False)
+    ax2.plot(x, [r["p95_ms_median"] for r in rows], "-o", color=CAP_LAT, lw=1.6, ms=4, label="p95 latency")
+    ax2.plot(x, [r["p99_ms_median"] for r in rows], ":s", color=CAP_LAT, lw=1.6, ms=4, mfc="white",
+             label="p99 latency")
+    ax2.set_yscale("log")
+    ax2.yaxis.set_major_locator(mticker.LogLocator(subs=(1.0, 2.0, 5.0)))
+    ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _p: f"{v:g}"))
+    ax2.yaxis.set_minor_formatter(mticker.NullFormatter())
+    ax2.set_ylabel("latency [ms] (log)", color=CAP_LAT)
+    ax2.tick_params(axis="y", colors=CAP_LAT)
+    ax2.grid(alpha=0.3)
+    cpu = ax2.twinx()
+    cpu.plot(x, [r["cpu_not_idle_pct_mean_median"] for r in rows], "-^", color=CAP_CPU, lw=1.6, ms=5,
+             label="connector CPU (run mean, median)")
+    cpu.set_ylim(0, 105)
+    cpu.set_ylabel("connector CPU [%]", color=CAP_CPU)
+    cpu.tick_params(axis="y", colors=CAP_CPU)
+    h1, l1 = ax2.get_legend_handles_labels()
+    h2, l2 = cpu.get_legend_handles_labels()
+    ax2.legend(h1 + h2, l1 + l2, fontsize=7.5, loc="lower right")
+    ax2.set_xticks(x, [str(r["concurrency"]) for r in rows])
+    ax2.set_xlabel(CONCURRENCY_LABEL)
+    if limit is not None:
+        li = [r["concurrency"] for r in rows].index(limit)
+        for ax in (ax1, ax2):
+            ax.axvline(li + 0.5, color="#555", ls="--", lw=1)
+        ax1.annotate(f"capacity limit: c = {limit}", (li + 0.5, top * 1.12), xytext=(4, 0),
+                     textcoords="offset points", fontsize=8, color="#555", va="center")
+    fig.tight_layout()
+    w.save(fig, fid, rows, notes + [summary["rule"], summary["statement"]])
+
+
+def _isnan(v):
+    return isinstance(v, float) and math.isnan(v)
 
 
 def _thesis_m2_sar(w, fid, series, coverage_note):

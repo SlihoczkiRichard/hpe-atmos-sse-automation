@@ -13,6 +13,9 @@ With --run it performs read-only operations:
     ESXi : vmware -v | vim-cmd vmsvc/getallvms | vim-cmd vmsvc/power.getstate <vmid>
     C1/C2: head -n1 /proc/stat | command -v sar | command -v ss
            (C2 only if ESXi already reports it powered on; it is never powered on)
+  vCenter REST (only with C2_POWER_BACKEND=vcenter-api): session login (POST to the session
+    endpoint only), VM lookup by VCENTER_VM_NAME, power-state GET; no power action
+  Manual backend: one TCP connect to CONNECTOR_2_IP:MANUAL_STATE_PORT (the scaler's state proxy)
   Atmos Admin API (GET only): /Health, /Connectors, /Connectors/{id}/status
   Target application: one HTTPS GET with TLS verification
 
@@ -85,6 +88,34 @@ class ReadOnlyHttp:
         return self._session.get(url, **kwargs)
 
 
+class ReadOnlyVCenterSession:
+    """requests-like session for VCenterVM that allows GET plus POST to the session (login)
+    endpoints only, so the pre-flight can never send a power action."""
+    SESSION_PATHS = ("/api/session", "/rest/com/vmware/cis/session")
+
+    def __init__(self, session=None):
+        self._session = session or requests.Session()
+
+    def post(self, url, **kwargs):
+        if not url.rstrip("/").endswith(self.SESSION_PATHS):
+            raise PermissionError(f"POST not allowed in the pre-flight: {url}")
+        return self._session.post(url, **kwargs)
+
+    def request(self, method, url, **kwargs):
+        if method.upper() != "GET":
+            raise PermissionError(f"{method} not allowed in the pre-flight: {url}")
+        return self._session.request(method, url, **kwargs)
+
+
+def default_vcenter_factory(env):
+    def factory(session=None):
+        return scaler.VCenterVM(_env(env, "VCENTER_HOST"), _env(env, "VCENTER_USER"), _env(env, "VCENTER_PASSWORD"),
+                                _env(env, "VCENTER_VM_NAME", "SR-CONN02"),
+                                verify=_env(env, "VCENTER_CA_BUNDLE") or True, timeout=10.0,
+                                session=ReadOnlyVCenterSession(session), api=_env(env, "VCENTER_API", "auto"))
+    return factory
+
+
 def _env(env, key, default=""):
     value = env.get(key)
     return default if value is None or not value.strip() else value.strip()
@@ -120,15 +151,19 @@ def default_ssh_factory(env):
 
 
 class Preflight:
-    def __init__(self, env, ssh_factory, http, known_hosts_files, http_timeout=10.0):
+    def __init__(self, env, ssh_factory, http, known_hosts_files, http_timeout=10.0, vcenter_factory=None,
+                 tcp_connect=None):
         self.env = env
+        self.vcenter_factory = vcenter_factory or default_vcenter_factory(env)
+        self.tcp_connect = tcp_connect
         self.ssh_factory = ssh_factory
         self.http = http
         self.known_hosts_files = known_hosts_files
         self.http_timeout = http_timeout
         self.checks = []
         self._secrets = [s for s in (_env(env, "CONNECTOR_SSH_PASSWORD"), _env(env, "CONNECTOR_2_SSH_PASSWORD"),
-                                     _env(env, "ESXI_PASSWORD"), _env(env, "ATMOS_API_KEY")) if s]
+                                     _env(env, "ESXI_PASSWORD"), _env(env, "VCENTER_PASSWORD"),
+                                     _env(env, "ATMOS_API_KEY")) if s]
 
     # --- result helpers ------------------------------------------------------
     def _redact(self, value):
@@ -155,9 +190,20 @@ class Preflight:
         return ReadOnlyExecutor(self.ssh_factory(host, user, password))
 
     # --- checks ----------------------------------------------------------------
+    def backend(self):
+        return _env(self.env, "C2_POWER_BACKEND", scaler.POWER_BACKEND_ESXI_SSH)
+
     def check_config(self):
-        required = ["CONNECTOR_1_IP", "CONNECTOR_SSH_USER", "ESXI_HOST", "ESXI_USER", "CONNECTOR_2_VMID",
-                    "TARGET_APP_URL", "ATMOS_BASE_URL", "ATMOS_API_KEY"]
+        per_backend = {scaler.POWER_BACKEND_ESXI_SSH: ["ESXI_HOST", "ESXI_USER", "CONNECTOR_2_VMID"],
+                       scaler.POWER_BACKEND_VCENTER_API: ["VCENTER_HOST", "VCENTER_USER", "VCENTER_PASSWORD"],
+                       scaler.POWER_BACKEND_MANUAL: ["CONNECTOR_2_IP"]}
+        if self.backend() not in per_backend:
+            self.add("config.c2_power_backend", FAILED,
+                     f"C2_POWER_BACKEND must be one of {', '.join(scaler.POWER_BACKENDS)}")
+        else:
+            self.add("config.c2_power_backend", OK, self.backend())
+        required = (["CONNECTOR_1_IP", "CONNECTOR_SSH_USER"] + per_backend.get(self.backend(), [])
+                    + ["TARGET_APP_URL", "ATMOS_BASE_URL", "ATMOS_API_KEY"])
         optional = ["CONNECTOR_2_IP", "ATMOS_CONNECTOR_1_ID", "ATMOS_CONNECTOR_2_ID", "BACKEND_HOST",
                     "SSH_KNOWN_HOSTS", "HTTP_CA_BUNDLE"]
         missing = [k for k in required if not _env(self.env, k)]
@@ -214,6 +260,58 @@ class Preflight:
                      f"output not recognised by the scaler parser: {res.out[:120]!r}")
         else:
             self.add("esxi.c2_power_state", OK, f"parsed as '{state}' by the scaler parser", state=state)
+        return state
+
+    def check_vcenter(self):
+        """Read-only: login, VM lookup, power state. Returns the C2 power state (or None)."""
+        names = ("vcenter.session", "vcenter.c2_vm_lookup", "vcenter.c2_power_state")
+        if not all(_env(self.env, k) for k in ("VCENTER_HOST", "VCENTER_USER", "VCENTER_PASSWORD")):
+            for name in names:
+                self.add(name, NOT_CHECKED, "VCENTER_HOST / VCENTER_USER / VCENTER_PASSWORD not set")
+            return None
+        vm = self.vcenter_factory()
+        try:
+            vm._login()
+        except scaler.VCenterError as exc:
+            self.add("vcenter.session", FAILED, str(exc))
+            for name in names[1:]:
+                self.add(name, NOT_CHECKED, "no vCenter session")
+            return None
+        except requests.RequestException as exc:
+            self.add("vcenter.session", FAILED, f"request failed: {type(exc).__name__} (TLS: is VCENTER_CA_BUNDLE "
+                                                "set to the vCenter root CA?)")
+            for name in names[1:]:
+                self.add(name, NOT_CHECKED, "no vCenter session")
+            return None
+        self.add("vcenter.session", OK, f"logged in as {vm.user} ({vm.api} API)", api=vm.api)
+        try:
+            vm_id = vm.vm_id()
+        except (scaler.VCenterError, requests.RequestException, ValueError, KeyError) as exc:
+            self.add("vcenter.c2_vm_lookup", FAILED, str(exc) or type(exc).__name__)
+            self.add("vcenter.c2_power_state", NOT_CHECKED, "VM not found")
+            return None
+        self.add("vcenter.c2_vm_lookup", OK, f"exactly one VM named {vm.vm_name!r} visible ({vm_id})",
+                 vm_id=vm_id)
+        state, err = vm.get_power_state()
+        if err:
+            self.add("vcenter.c2_power_state", FAILED if state == scaler.UNKNOWN else WARNING, err)
+            return None
+        self.add("vcenter.c2_power_state", OK, f"'{state}'", state=state)
+        self.add("vcenter.power_privilege", NOT_CHECKED,
+                 "the Power On privilege is only exercised by a live scaler run (the pre-flight never powers on)")
+        return state
+
+    def check_manual(self):
+        """Manual backend: the scaler's state proxy (one TCP connect), never a power action."""
+        host = _env(self.env, "CONNECTOR_2_IP")
+        port = int(_env(self.env, "MANUAL_STATE_PORT", "22"))
+        if not host:
+            self.add("manual.c2_state_proxy", NOT_CHECKED, "CONNECTOR_2_IP not set")
+            return None
+        kwargs = {"connect": self.tcp_connect} if self.tcp_connect else {}
+        state, _ = scaler.ManualPowerControl(host, port, **kwargs).get_power_state()
+        self.add("manual.c2_state_proxy", OK, f"TCP {host}:{port} -> '{state}' (proxy, not a hypervisor state)",
+                 state=state)
         return state
 
     def check_guest(self, role, host, user, password, c2_state=None):
@@ -357,7 +455,13 @@ class Preflight:
 
     def run(self):
         self.check_config()
-        c2_state = self.check_esxi()
+        backend = self.backend()
+        if backend == scaler.POWER_BACKEND_VCENTER_API:
+            c2_state = self.check_vcenter()
+        elif backend == scaler.POWER_BACKEND_MANUAL:
+            c2_state = self.check_manual()
+        else:
+            c2_state = self.check_esxi()
         self.check_guest("c1", _env(self.env, "CONNECTOR_1_IP"), _env(self.env, "CONNECTOR_SSH_USER"),
                          _env(self.env, "CONNECTOR_SSH_PASSWORD"))
         self.check_guest("c2", _env(self.env, "CONNECTOR_2_IP"),
@@ -387,7 +491,10 @@ def summarize(checks):
 
 PLAN = """Pre-flight plan (nothing is contacted without --run):
   config.variables          presence of required/optional variables (names only)
+  config.c2_power_backend   C2_POWER_BACKEND (esxi-ssh | vcenter-api | manual) decides which C2 check runs:
   esxi.*                    host key present? vmware -v; vim-cmd vmsvc/getallvms; power.getstate <CONNECTOR_2_VMID>
+  vcenter.*                 login (session endpoint only), VM lookup by VCENTER_VM_NAME, power-state GET
+  manual.c2_state_proxy     one TCP connect to CONNECTOR_2_IP:MANUAL_STATE_PORT
   c1.* / c2.*               host key present? head -n1 /proc/stat; command -v sar; command -v ss
                             (C2 only if ESXi reports it powered on; it is never powered on)
   api.*                     GET /Health, GET /Connectors, GET /Connectors/{id}/status
