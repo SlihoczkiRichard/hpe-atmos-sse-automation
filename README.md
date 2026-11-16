@@ -7,8 +7,14 @@ Aruba SSE Cloud Edge setup with two VMware ESXi hosts, one connector VM per host
 > **Validation status (short):** all components are covered by offline tests (simulated clocks,
 > mocked SSH/HTTP/API and synthetic data). Experiment 1 (`hey` load through the SSE path with C1 and
 > client `sar` telemetry, via `lab.py e1`) has run on the testbed: one connector peaks at about
-> 1400 concurrent clients (about 4000 successful responses/s) and collapses above it. ESXi/vCenter
-> power control, failover and the Admin API have not been run live yet. Figures produced from
+> 1400 concurrent clients (about 4000 successful responses/s) and collapses above it. Experiment 2
+> (`lab.py e2`, vCenter power-on, five repetitions) has run: C2 is powered on about 5 s, reachable
+> about 27 s and Available in the portal about 130 s after the power-on call. Experiment 3
+> (`lab.py e3`, five repetitions) has run: after the traffic-carrying connector's NIC is
+> disconnected, the client gets answers again after about 300 s. Experiment 4 (URLhaus
+> sync into a custom web category, and a canary blocking test through the SWG) has run: after the
+> category update and `POST /Commit` the canary was blocked within about 1 s in back-to-back runs and
+> after 610–680 s in "cold" runs (n = 5). Figures produced from
 > dry-run data are watermarked **SIMULATED – NOT A REAL MEASUREMENT** and are not experimental
 > results. Details: [docs/validation-status.md](docs/validation-status.md).
 

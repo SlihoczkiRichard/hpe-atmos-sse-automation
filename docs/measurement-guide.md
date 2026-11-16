@@ -279,17 +279,41 @@ for example into `01-load-test/results/<RUN_ID>/telemetry/`.
 - **Variant:** cold VM start of the pre-installed, registered SR-CONN02; scale-in disabled.
 - **Start state of every repetition:** C1 powered on and Available; C2 powered off and Unavailable in
   the portal (administratively enabled); C1 CPU back at its idle level (about 33 %); `lab.py` check green.
-- **Load:** one `hey` step, c = 1400, 600 s (`E2_*` in `.env.example`), then 180 s observation.
-  c = 1400 is the E1 capacity limit (E1-20261106-02: 3888 1/s, errors <= 0.003 %). Replaying the
-  scaler's trigger (1 s sample about every 5 s, all >= 80 % for 15 s) on the 1 s C1 telemetry of
-  that run: at c = 1000 only 69-77 % of the samples reach 80 % and the trigger often does not fire
-  within a minute; at c = 1400 it fires at 18-25 s in most cases.
+- **Load:** `hey` at c = 1400 for 5 × 120 s back to back (`E2_SWEEPS=5`, `E2_STEP_DURATION=120s`,
+  `E2_COOLDOWN_SEC=0` in `.env.example`), then 180 s observation. c = 1400 is the E1 capacity limit
+  (E1-20261106-02: 3888 1/s, errors <= 0.003 %). Replaying the scaler's trigger (1 s sample about
+  every 5 s, all >= 80 % for 15 s) on the 1 s C1 telemetry of that run: at c = 1000 only 69-77 % of
+  the samples reach 80 % and the trigger often does not fire within a minute; at c = 1400 it fires at
+  18-25 s in most cases. The load is split into five rounds because `hey` keeps at most 1,000,000
+  results per run: one 600 s step at about 4000 1/s exceeds that and its reported rate is wrong.
 - **Observation:** at least `READINESS_TIMEOUT_SEC` (600 s) after `POWER_ON_SENT`; with the trigger
   about 20 s into the load, 600 s load + 180 s observation give about 750 s. `ATMOS_API_KEY` and
   `ATMOS_CONNECTOR_2_ID` are needed for the "C2 Available in the portal" milestone.
-- **Repetitions:** five, each with a new `RUN_ID` (`python3 lab.py e2 --run-id E2-<date>-0N`).
-  Between them: Guest OS shutdown of C2 by hand, wait for Powered off and Unavailable, then 5 more
-  minutes.
+- **Repetitions:** five, each with a new `RUN_ID` (`python3 lab.py e2 --run-id E2-<date>-0N`), each
+  started in `tmux` so that a dropped VPN or SSH session does not end it. Between them: Guest OS
+  shutdown of C2 by hand, wait for Powered off and Unavailable in the portal, then 5 more minutes.
+  Right before the start, ten `curl` requests to the target URL must all return HTTP 200 (a 502
+  directly after the C2 shutdown is expected and disappears within the wait).
+- **Which connector carries the traffic:** the backend's nginx access log shows the connector as the
+  source address (C1 = 10.0.1.121, C2 = 10.0.1.122). Per-minute counts for one day, saved on the
+  backend the same evening (log rotation can remove them; the E2 figure script reads this file):
+
+  ```bash
+  sudo awk '$4 ~ /12\/Nov\/2026:/ {split($4,t,":"); print t[2]":"t[3], $1}' /var/log/nginx/access.log \
+      | sort | uniq -c > ~/nginx_ip_per_min_20261112.txt
+  ```
+
+  The first minute with C2 requests is an upper bound for "C2 carries traffic" (minute resolution).
+- **Observed behaviour (E2-20261112-01 … -05, n = 5, `vcenter-api` backend, code `1d40ba5`):**
+  from `POWER_ON_SENT`, median (range): VM powered on 4.9 s (4.8-5.2), guest SSH 27.3 s (26.1-28.0),
+  C2 receives traffic in nginx at most 98.2 s (78.1-103.0), portal Available 129.4 s (122.6-148.6).
+  The trigger fires 22.5 s (17.6-42.6) into the load and `POWER_ON_SENT` follows 0.11 s later. The
+  SSE edge keeps a single client's existing connections on C1 and sends new connections to C2, so
+  C2 takes over most of the load (C2 CPU 85-94 %, C1 24-44 %); throughput does not rise (round
+  medians 4094, 3913, 3797, 3780, 3833 1/s), errors <= 0.021 %. With one client IP this does not show
+  per-connection balancing across both connectors; a second client address would be needed for that.
+- **Figures:** `05-results/e2_figures.py <results-dir>` draws the scale-out timeline and the
+  activation milestones of all repetitions from the run folders.
 
 ### Scaler on its own
 
@@ -366,6 +390,50 @@ python 03-failover/failover_probe.py analyze --run-id E3-20261101-01 --probe per
   `FAILOVER_HTTP_MAX_BODY_BYTES` and the connection must stay open (no `Connection: close`).
 - **Marker:** it is an operator signal, not proof of the failure time.
 
+### E3 measurement profile (`lab.py e3`)
+
+`python3 lab.py e3 --run-id E3-<date>-rNN --duration-sec 900` starts the three probes with one
+`RUN_ID`, prints their status every 5 s and writes the markers from the keyboard (`f` fault, `c`
+cleared, `n TEXT` note), then runs the analysis. Settings used for the thesis runs (`.env`):
+
+| Key | Value | Why |
+|---|---|---|
+| `FAILOVER_HTTP_URL` | `https://<app>/e3/probe.txt` (static file with a unique token) | content check through the SSE path |
+| `FAILOVER_TCP_HOST` / `_PORT` | backend address, port 80 | control probe that bypasses the SSE path; it should stay up during the fault |
+| `FAILOVER_HTTP_TIMEOUT_MS` | 2000 | a new TCP+TLS request through the edge takes 620 ms (p50) / about 700 ms (p99) without a fault (E3-20261109-T0); 1000 ms left too little margin |
+| `FAILOVER_PERSISTENT_INTERVAL_MS` | 800 | the edge closes a keep-alive connection after 1000 requests; 800 ms keeps one connection for the whole run |
+| `--duration-sec` | 900 | fault at about 60 s, reconnect at about 540 s, then recovery and stable tail |
+
+- **Fault:** disconnect the vNIC of the connector that **carries the traffic** (untick *Connected* in
+  the VM's settings, press `f` immediately before Save); reconnect it at about 540 s (`c` before
+  Save). With one client the edge pins the traffic to one connector, so check it first on the backend:
+
+  ```bash
+  sudo tail -n 300 /var/log/nginx/access.log | grep e3/probe | awk '{print $1}' | sort | uniq -c
+  ```
+
+  In the thesis runs that was C2 (10.0.1.122). The default marker note of `lab.py` says "C1"; the
+  `lab_run.json` of each run records the marker times, and the faulted connector is stated in the
+  results.
+- **Start state:** both connectors Available in the portal, the faulted NIC connected, at least 5 min
+  since the previous repetition's reconnect.
+- **Expected analysis output:** the TCP control probe is reported as `not_valid` (no outage to
+  measure); that is the intended result for the control.
+- **Observed behaviour (E3-20261109-CAL2, -r03, E3-20261114-r04 … -r06, n = 5):**
+  the persistent connection breaks 4-5 s after the fault marker. The first successful HTTP probe
+  after the fault comes at a median of +301.5 s (294.7-303.8 s), the failure span is 299.1 s
+  (292.2-301.4 s), i.e. the edge moves new connections to the healthy connector only after about
+  five minutes. Two runs show a short second outage (r03 4.6 s, r06 2.3 s); after recovery there are
+  no further failures. Controls: E3-20261109-T0 (no fault, 0 failures) and -r01 (the idle C1
+  faulted, 0 failures: losing a connector that carries no traffic is invisible to the client). Not
+  counted: -CAL (idle C1 faulted, aborted) and -r02 (the reconnect coincided with the recovery at
+  about +300 s, so it cannot tell the two apart).
+- **Code version:** the 11-14 runs (and all E2 runs) recorded commit `1d40ba5`; the 11-09 runs
+  recorded `5d18f0d`, an earlier version of the same commit that differs only in `.env.example`,
+  `05-results/plots.py` and this guide (`03-failover/` and `lab.py` are identical).
+- **Figures:** `05-results/e3_figures.py <results-dir>` draws the failover timeline of all
+  repetitions.
+
 ## Experiment 4 – threat intelligence and perceived blocking delay
 
 ### Indicator synchronisation (control host)
@@ -378,7 +446,9 @@ python 04-threat-intel/sync_threat_intel.py restore --run-id E4-20261101-01 \
     --snapshot 04-threat-intel/results/E4-20261101-01/sync_apply/category_snapshot.json --commit after-update
 ```
 
-- **`--commit`:** mandatory for `apply` and `restore`. Whether the Commit is needed, and whether it also applies other pending changes of the tenant, is not validated.
+- **`--commit`:** mandatory for `apply` and `restore`. `POST /Commit` puts pending category changes into effect (confirmed by the canary runs below). In a shared tenant it also applies other administrators' pending changes: check the portal's **Apply Changes** list before every Commit.
+- **Feed download:** the keyless `csv_recent` URL now returns HTTP 410. Download the "recent URLs" CSV export with a free abuse.ch Auth-Key (`https://urlhaus-api.abuse.ch/v2/files/exports/<KEY>/recent.csv`) and pass it with `--feed-file`.
+- **Exclusions:** list shared hosting/file-sharing domains (github.com, google.com, dropbox.com, discord.com, …) in `THREAT_EXCLUDE_FILE`; reducing a `github.com/.../releases` URL to its host would block all of github.com in a shared tenant.
 - **Indicators:** at most 25 hosts by default, chosen by a deterministic rule. IP indicators are only saved.
 - **Rule assignment:** assigning the category to a blocking SWG rule is a manual step.
 
@@ -434,6 +504,36 @@ equals what the run wrote:
 
 The command never deletes anything. It restores the category only; check the access to the canary
 separately.
+
+### E4 measurement profile (thesis runs)
+
+Synchronisation (E4-20261114-P0 … -P2, SR-BENCHMARK-CLI): feed file from the Auth-Key export,
+exclusion file as above, `THREAT_CATEGORY_NAME` set to a **new** category name (the tenant already
+had an untagged `URLhaus_Malware_Blocklist`, which the code correctly refused as `foreign_category`).
+`plan` → `apply --commit none` → `plan` again (empty `to_add`/`to_remove`).
+
+Canary (E4-20261116-SIG3, -c05 … -c09): client = a Windows laptop with the HPE Aruba SSE agent
+running and no VPN. A dedicated rule blocks the test category for the operator's own identity only,
+with an External Web profile that has SSL Inspection on. Settings used (`.env` on the client):
+
+| Key / option | Value | Why |
+|---|---|---|
+| Python | 3.12 | Python 3.13 enables `VERIFY_X509_STRICT` by default and rejects the SSL-inspection certificate ("Missing Authority Key Identifier") |
+| `HTTP_CA_BUNDLE`, `REQUESTS_CA_BUNDLE` | certifi + the tenant's Default CA (Settings → Certificates) | the probe verifies the inspected TLS chain |
+| `CANARY_URL` | own static page with a unique token on Netlify | `*.github.io` is not inspected by the rule (issuer stays Let's Encrypt even inside the category), so it can never be blocked |
+| `SWG_BLOCK_STATUS` / `SWG_BLOCK_BODY_REGEX` | `403` / `Access to this page is blocked` | the block page is a 403 |
+| `CANARY_MAX_BODY_BYTES` | 262144 | the block page is about 172 KB and the text sits at byte ~167 000; the 64 KiB default gives `unclassified_403` |
+| `--max-wait-sec`, `--restore-max-wait-sec` | 3600 | a "cold" change took 610–680 s; the 600 s default ends just before it |
+| `--commit` | `after-update` | fully automated; `none` needs a manual **Apply Changes** in the portal |
+
+Check the portal's audit log (Settings) afterwards: API writes appear under the API client's name,
+Apply Changes under the user's, with one-second timestamps.
+
+Observed results (n = 5 valid): blocking became visible either about 0.5–1 s after the Commit
+response (c06–c08, run 2–4 min after a previous Commit) or 610–680 s after it (c05 with a manual
+Apply, c09 after a 2.6 h pause). Access returned 7–15 s after the restore. The cause of the two
+regimes is not established. c01–c04 are not valid (GitHub Pages canary not inspectable, 600 s window
+shorter than the cold delay, one interrupted run).
 
 ## Result processing (control host)
 

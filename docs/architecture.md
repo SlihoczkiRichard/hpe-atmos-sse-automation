@@ -131,7 +131,7 @@ Common conventions:
   - GETs to the own canary and reference hosts.
 - Side effects:
   - changes to **one** managed category (sync) or to **one** pre-existing test category (canary);
-  - an optional Commit, whose necessity and scope are not validated.
+  - an optional Commit; the live runs confirmed that it puts the change into effect, but not whether it also applies other pending changes of the tenant (the runtime `commit_note` text predates that check).
 - Outputs in `results/<RUN_ID>/`:
   - `sync_<command>[.attemptN]/`: manifest, indicators, category snapshot, api_log.jsonl, result;
   - `signature[.attemptN]/`;
